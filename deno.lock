@@ -1,0 +1,24 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:@types/node": "npm:@types/node@18.16.19"
+    },
+    "npm": {
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
+      }
+    }
+  },
+  "redirects": {
+    "https://esm.sh/@apibara/indexer": "https://esm.sh/@apibara/indexer@0.2.2",
+    "https://esm.sh/@apibara/indexer/sink/console": "https://esm.sh/@apibara/indexer@0.2.2/sink/console",
+    "https://esm.sh/@apibara/indexer/starknet": "https://esm.sh/@apibara/indexer@0.2.2/starknet",
+    "https://esm.sh/@ethereumjs/rlp": "https://esm.sh/@ethereumjs/rlp@5.0.1",
+    "https://esm.sh/@ethereumjs/trie": "https://esm.sh/@ethereumjs/trie@6.0.1",
+    "https://esm.sh/starknet": "https://esm.sh/starknet@5.24.3",
+    "https://esm.sh/viem": "https://esm.sh/viem@2.0.10"
+  },
+  "remote": {}
+}
