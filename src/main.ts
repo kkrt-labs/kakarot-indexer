@@ -90,7 +90,13 @@ export default function transform({
         },
       };
     } catch (e) {
-      console.error(`Invalid transaction: ${e}`);
+      if (e instanceof Error) {
+        console.error(`Invalid transaction: ${e.message}`);
+      } else {
+        console.error(`Unknown throw ${e}`);
+        throw e;
+      }
+      // TODO: Ping alert webhooks
       return [];
     }
   });

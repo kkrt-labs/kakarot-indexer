@@ -83,8 +83,6 @@ export function addSignature(
   );
 }
 
-type Option<T> = T | null;
-
 /**
  * @param tx Typed transaction to be converted.
  * @param blockHash Block hash of the transaction.
@@ -94,16 +92,22 @@ type Option<T> = T | null;
  *
  * @throws Error if the transaction is not signed.
  *
- * Code taken from https://github.com/ethereumjs/ethereumjs-monorepo
- * since not exported.
+ * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */
 export function toJsonRpcTx(
   tx: TypedTransaction,
-  blockHash: Option<string>,
-  blockNumber: Option<string>,
-  txIndex: Option<string>,
+  blockHash: string | null,
+  blockNumber: string | null,
+  txIndex: string | null,
 ): JsonRpcTx {
   const txJSON = tx.toJSON();
+  if (
+    txJSON.r === undefined || txJSON.s === undefined || txJSON.v === undefined
+  ) {
+    throw new Error(
+      `Transaction is not signed: {r: ${txJSON.r}, s: ${txJSON.s}, v: ${txJSON.v}}`,
+    );
+  }
   return {
     blockHash,
     blockNumber,
@@ -121,9 +125,9 @@ export function toJsonRpcTx(
     to: tx.to?.toString() ?? null,
     transactionIndex: txIndex,
     value: txJSON.value!,
-    v: txJSON.v!,
-    r: txJSON.r!,
-    s: txJSON.s!,
+    v: txJSON.v,
+    r: txJSON.r,
+    s: txJSON.s,
     maxFeePerBlobGas: txJSON.maxFeePerBlobGas,
     blobVersionedHashes: txJSON.blobVersionedHashes,
   };
