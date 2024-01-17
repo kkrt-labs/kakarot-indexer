@@ -1,6 +1,6 @@
 # Kakarot Indexer
 
-Kakarot Indexer is part of the three-part architecture of the Kakarot zkEVM rollup (Kakarot EVM Cairo Programs, Kakarot RPC, Kakarot Indexer). Its job is to index the underlying CairoVM network on which Kakarot core is deployed in an Ethereum compatible format.
+Kakarot Indexer fits in the three-part architecture of the Kakarot zkEVM rollup (Kakarot EVM Cairo Programs, Kakarot RPC, Kakarot Indexer). It indexes the underlying CairoVM network on which Kakarot core is deployed in an Ethereum compatible format.
 
 <p align="center" style="margin-top: 25px; margin-bottom: 25px;">
     <img src="./docs/kakarot_indexer.png" alt="Kakarot Indexer" width="80%" style="border-radius: 10px;">
