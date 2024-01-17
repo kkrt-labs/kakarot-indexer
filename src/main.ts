@@ -38,11 +38,15 @@ export default function transform({
   header: BlockHeader;
   events: EventWithTransaction[];
 }) {
-  return (events ?? []).flatMap(({ transaction, event, receipt }) => {
+  return (events ?? []).flatMap(({ transaction, receipt }) => {
     const calldata = transaction.invokeV1?.calldata;
-    if (!calldata) return [];
+    if (!calldata) {
+      console.error("No calldata");
+      return [];
+    }
     const callArrayLen = BigInt(calldata[0]);
     if (callArrayLen !== 1n) {
+      console.error(`Invalid call array length ${callArrayLen}`);
       return [];
     }
 
@@ -59,28 +63,35 @@ export default function transform({
     );
 
     const signature = transaction.meta.signature;
+    if (signature.length !== 5) {
+      console.error(`Invalid signature length ${signature.length}`);
+      return [];
+    }
     const r = uint256.uint256ToBN({ high: signature[1], low: signature[0] });
     const s = uint256.uint256ToBN({ high: signature[3], low: signature[2] });
     const v = BigInt(signature[4]);
 
-    const ethTxUnsigned = TransactionFactory.fromSerializedData(bytes, {
-      freeze: false,
-    });
-    const ethTx = addSignature(ethTxUnsigned, r, s, v);
+    try {
+      const ethTxUnsigned = TransactionFactory.fromSerializedData(bytes, {
+        freeze: false,
+      });
+      const ethTx = addSignature(ethTxUnsigned, r, s, v);
 
-    const blockHash = header.blockHash;
-    const blockNumber = header.blockNumber;
-    const index = receipt.transactionIndex;
-    const from = event.data[0];
+      const blockHash = header.blockHash;
+      const blockNumber = header.blockNumber;
+      const index = receipt.transactionIndex;
 
-    const JsonRpcTx = toJsonRpcTx(ethTx, blockHash, blockNumber, index, from);
+      const JsonRpcTx = toJsonRpcTx(ethTx, blockHash, blockNumber, index);
 
-    return {
-      collection: "transactions",
-      data: {
-        hash: JsonRpcTx.hash,
-        tx: JsonRpcTx,
-      },
-    };
+      return {
+        collection: "transactions",
+        data: {
+          tx: JsonRpcTx,
+        },
+      };
+    } catch (e) {
+      console.error(`Invalid transaction: ${e}`);
+      return [];
+    }
   });
 }

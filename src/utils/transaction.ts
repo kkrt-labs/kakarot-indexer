@@ -100,38 +100,36 @@ export function toJsonRpcTx(
   blockHash: Option<string>,
   blockNumber: Option<string>,
   index: Option<string>,
-  from: string,
 ): JsonRpcTx {
+  if (!tx.r || !tx.s || !tx.v) {
+    throw new Error(
+      `Invalid transaction signature: {r: ${tx.r}, s:${tx.s}, v:${tx.v}}`,
+    );
+  }
+
+  const from = tx.getSenderAddress().toString();
+
   const gas = bigIntToHex(tx.gasLimit);
-  const gasPrice = bigIntToHex(((): bigint => {
-    if (isFeeMarketEIP1559TxData(tx)) {
-      return tx.maxFeePerGas;
-    } else if (isAccessListEIP2930Tx(tx) || isLegacyTx(tx)) {
-      return tx.gasPrice;
-    }
-    return 0n;
-  })());
-  const [maxFeePerGas, maxPriorityFeePerGas] =
-    ((): [Option<bigint>, Option<bigint>] => {
-      if (isFeeMarketEIP1559TxData(tx)) {
-        return [tx.maxFeePerGas, tx.maxPriorityFeePerGas];
-      }
-      return [null, null];
-    })();
+  const gasPrice = bigIntToHex(
+    isFeeMarketEIP1559TxData(tx)
+      ? tx.maxFeePerGas
+      : isAccessListEIP2930Tx(tx) || isLegacyTx(tx)
+      ? tx.gasPrice
+      : 0n,
+  );
+  const [maxFeePerGas, maxPriorityFeePerGas] = isFeeMarketEIP1559TxData(tx)
+    ? [tx.maxFeePerGas, tx.maxPriorityFeePerGas]
+    : [null, null];
   const maxFeePerGasJson = maxFeePerGas ? bigIntToHex(maxFeePerGas) : undefined;
   const maxPriorityFeePerGasJson = maxPriorityFeePerGas
     ? bigIntToHex(maxPriorityFeePerGas)
     : undefined;
 
   const type = tx.type.toString(10);
-  const accessList = ((): AccessListBytes | undefined => {
-    if (
-      isAccessListEIP2930Tx(tx) || isFeeMarketEIP1559TxData(tx)
-    ) {
-      return tx.accessList;
-    }
-    return undefined;
-  })();
+  const accessList: AccessListBytes | undefined =
+    isAccessListEIP2930Tx(tx) || isFeeMarketEIP1559TxData(tx)
+      ? tx.accessList
+      : undefined;
   const accessListJson = accessList
     ? accessList.map((
       [address, storageKeys],
@@ -142,19 +140,11 @@ export function toJsonRpcTx(
       };
     })
     : undefined;
-  const chainId = bigIntToHex(((): bigint => {
-    if (isLegacyTx(tx)) {
-      if (!tx.v) {
-        throw new Error("Invalid transaction signature: missing v");
-      }
-      return (tx.v - 35n) >> 2n;
-    }
-    return tx.chainId;
-  })());
+  const chainId = bigIntToHex(isLegacyTx(tx) ? (tx.v - 35n) >> 1n : tx.chainId);
   const hash = bytesToHex(tx.hash());
   const input = bytesToHex(tx.data);
   const nonce = bigIntToHex(tx.nonce);
-  const [r, s, v] = [tx.r, tx.s, tx.v].map((x) => bigIntToHex(x ?? 0n));
+  const [r, s, v] = [tx.r, tx.s, tx.v].map((x) => bigIntToHex(x));
   const to = tx.to ? tx.to.toString() : null;
   const value = bigIntToHex(tx.value);
 
