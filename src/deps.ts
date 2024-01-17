@@ -12,12 +12,12 @@ export {
   isAccessListEIP2930Tx,
   isFeeMarketEIP1559TxData,
   isLegacyTx,
-  LegacyTransaction,
-  TransactionFactory,
 } from "https://esm.sh/@ethereumjs/tx@5.1.0";
 export type {
   Capability,
   JsonRpcTx,
+  LegacyTransaction,
+  TransactionFactory,
   TypedTransaction,
   TypedTxData,
 } from "https://esm.sh/@ethereumjs/tx@5.1.0";
