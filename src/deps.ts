@@ -18,8 +18,6 @@ export type {
   JsonRpcTx,
   LegacyTransaction,
   TransactionFactory,
-  TypedTransaction,
-  TypedTxData,
 } from "https://esm.sh/@ethereumjs/tx@5.1.0";
 
 export {
