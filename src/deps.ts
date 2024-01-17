@@ -7,17 +7,17 @@ export type {
 
 // Ethereum
 export {
-  AccessListEIP2930Transaction,
-  Capability,
-  FeeMarketEIP1559Transaction,
   isAccessListEIP2930Tx,
   isFeeMarketEIP1559TxData,
   isLegacyTx,
-  LegacyTransaction,
-  TransactionFactory,
 } from "https://esm.sh/@ethereumjs/tx@5.1.0";
 export type {
+  AccessListEIP2930Transaction,
+  Capability,
+  FeeMarketEIP1559Transaction,
   JsonRpcTx,
+  LegacyTransaction,
+  TransactionFactory,
   TypedTransaction,
   TypedTxData,
 } from "https://esm.sh/@ethereumjs/tx@5.1.0";
