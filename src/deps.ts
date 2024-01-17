@@ -27,6 +27,7 @@ export {
   bigIntToHex,
   bytesToHex,
   concatBytes,
+  intToHex,
 } from "https://esm.sh/@ethereumjs/util@9.0.1";
 
 export type { AccessListBytes } from "https://esm.sh/@ethereumjs/common@4.1.0";

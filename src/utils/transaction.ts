@@ -1,10 +1,9 @@
 import { JsonRpcTx } from "../deps.ts";
 import {
-  AccessListBytes,
   AccessListEIP2930Transaction,
-  bigIntToHex,
   bytesToHex,
   FeeMarketEIP1559Transaction,
+  intToHex,
   isAccessListEIP2930Tx,
   isFeeMarketEIP1559TxData,
   isLegacyTx,
@@ -94,79 +93,38 @@ type Option<T> = T | null;
  * @param from Address of the transaction sender.
  *
  * @throws Error if the transaction is not signed.
+ *
+ * Code taken from https://github.com/ethereumjs/ethereumjs-monorepo
+ * since not exported.
  */
 export function toJsonRpcTx(
   tx: TypedTransaction,
   blockHash: Option<string>,
   blockNumber: Option<string>,
-  index: Option<string>,
+  txIndex: Option<string>,
 ): JsonRpcTx {
-  if (!tx.r || !tx.s || !tx.v) {
-    throw new Error(
-      `Invalid transaction signature: {r: ${tx.r}, s:${tx.s}, v:${tx.v}}`,
-    );
-  }
-
-  const from = tx.getSenderAddress().toString();
-
-  const gas = bigIntToHex(tx.gasLimit);
-  const gasPrice = bigIntToHex(
-    isFeeMarketEIP1559TxData(tx)
-      ? tx.maxFeePerGas
-      : isAccessListEIP2930Tx(tx) || isLegacyTx(tx)
-      ? tx.gasPrice
-      : 0n,
-  );
-  const [maxFeePerGas, maxPriorityFeePerGas] = isFeeMarketEIP1559TxData(tx)
-    ? [tx.maxFeePerGas, tx.maxPriorityFeePerGas]
-    : [null, null];
-  const maxFeePerGasJson = maxFeePerGas ? bigIntToHex(maxFeePerGas) : undefined;
-  const maxPriorityFeePerGasJson = maxPriorityFeePerGas
-    ? bigIntToHex(maxPriorityFeePerGas)
-    : undefined;
-
-  const type = tx.type.toString(10);
-  const accessList: AccessListBytes | undefined =
-    isAccessListEIP2930Tx(tx) || isFeeMarketEIP1559TxData(tx)
-      ? tx.accessList
-      : undefined;
-  const accessListJson = accessList
-    ? accessList.map((
-      [address, storageKeys],
-    ) => {
-      return {
-        address: bytesToHex(address),
-        storageKeys: storageKeys.map(bytesToHex),
-      };
-    })
-    : undefined;
-  const chainId = bigIntToHex(isLegacyTx(tx) ? (tx.v - 35n) >> 1n : tx.chainId);
-  const hash = bytesToHex(tx.hash());
-  const input = bytesToHex(tx.data);
-  const nonce = bigIntToHex(tx.nonce);
-  const [r, s, v] = [tx.r, tx.s, tx.v].map((x) => bigIntToHex(x));
-  const to = tx.to ? tx.to.toString() : null;
-  const value = bigIntToHex(tx.value);
-
+  const txJSON = tx.toJSON();
   return {
     blockHash,
     blockNumber,
-    from,
-    gas,
-    gasPrice,
-    maxFeePerGas: maxFeePerGasJson,
-    maxPriorityFeePerGas: maxPriorityFeePerGasJson,
-    type,
-    accessList: accessListJson,
-    chainId,
-    hash,
-    input,
-    nonce,
-    to,
-    transactionIndex: index,
-    v,
-    r,
-    s,
-    value,
+    from: tx.getSenderAddress().toString(),
+    gas: txJSON.gasLimit!,
+    gasPrice: txJSON.gasPrice ?? txJSON.maxFeePerGas!,
+    maxFeePerGas: txJSON.maxFeePerGas,
+    maxPriorityFeePerGas: txJSON.maxPriorityFeePerGas,
+    type: intToHex(tx.type),
+    accessList: txJSON.accessList,
+    chainId: txJSON.chainId,
+    hash: bytesToHex(tx.hash()),
+    input: txJSON.data!,
+    nonce: txJSON.nonce!,
+    to: tx.to?.toString() ?? null,
+    transactionIndex: txIndex,
+    value: txJSON.value!,
+    v: txJSON.v!,
+    r: txJSON.r!,
+    s: txJSON.s!,
+    maxFeePerBlobGas: txJSON.maxFeePerBlobGas,
+    blobVersionedHashes: txJSON.blobVersionedHashes,
   };
 }
