@@ -56,9 +56,12 @@ export default function transform({
     }
     store.push({ collection: "transactions", data: { tx: ethTx } });
 
+    // HEAD
     // Can be null if:
     // 1. The event is part of the defined ignored events (see IGNORED_KEYS).
     // 2. The event has an invalid number of keys.
+    //
+    //ab9bb46 (add logs)
     const ethLogs = receipt.events.map((e) => {
       return toEthLog({ transaction: ethTx, event: e });
     }).filter((e) => e !== null) as JsonRpcLog[];
@@ -66,6 +69,7 @@ export default function transform({
       store.push({ collection: "logs", data: { log: ethLog } });
     });
 
+    // HEAD
     const ethReceipt = toEthReceipt({
       transaction: ethTx,
       logs: ethLogs,
@@ -75,6 +79,8 @@ export default function transform({
     store.push({ collection: "receipts", data: { receipt: ethReceipt } });
     cumulativeGasUsed += BigInt(ethReceipt.gasUsed);
 
+    //
+    //ab9bb46 (add logs)
     return store;
   });
 }
