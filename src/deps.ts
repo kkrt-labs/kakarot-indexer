@@ -23,6 +23,12 @@ export type {
   TransactionFactory,
 } from "https://esm.sh/@ethereumjs/tx@5.1.0";
 
+export type {
+  JsonRpcTx,
+  TypedTransaction,
+  TypedTxData,
+} from "https://esm.sh/@ethereumjs/tx@5.1.0";
+
 export {
   bigIntToBytes,
   bigIntToHex,
