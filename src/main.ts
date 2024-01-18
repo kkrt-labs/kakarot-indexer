@@ -70,17 +70,29 @@ export default function transform({
     });
 
     // HEAD
+    // HEAD
+    //
+    //0167057 (add receipt indexing)
     const ethReceipt = toEthReceipt({
       transaction: ethTx,
       logs: ethLogs,
       event,
       cumulativeGasUsed,
     });
+    // HEAD
     store.push({ collection: "receipts", data: { receipt: ethReceipt } });
     cumulativeGasUsed += BigInt(ethReceipt.gasUsed);
 
     //
     //ab9bb46 (add logs)
+    //
+    if (ethReceipt === null) {
+      return [];
+    }
+    store.push({ collection: "receipts", data: { receipt: ethReceipt } });
+    cumulativeGasUsed += BigInt(ethReceipt.gasUsed);
+
+    //0167057 (add receipt indexing)
     return store;
   });
 }
