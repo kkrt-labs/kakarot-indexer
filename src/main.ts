@@ -38,7 +38,7 @@ export default function transform({
 }) {
   return (events ?? []).flatMap(({ transaction, receipt }) => {
     const store: {
-      collection: string;
+      collection: "transactions" | "logs";
       data: { tx: JsonRpcTx } | { log: JsonRpcLog };
     }[] = [];
 

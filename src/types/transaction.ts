@@ -44,6 +44,7 @@ export function toEthTx(
     return null;
   }
   const callArrayLen = BigInt(calldata[0]);
+  // Multi-calls are not supported for now.
   if (callArrayLen !== 1n) {
     console.error(`Invalid call array length ${callArrayLen}`);
     return null;

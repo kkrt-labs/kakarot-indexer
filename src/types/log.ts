@@ -7,6 +7,8 @@ import { Event, hash } from "../deps.ts";
 // Eth
 import { bigIntToHex } from "../deps.ts";
 
+// Events containing these keys are not
+// ETH logs and should be ignored.
 const IGNORED_KEYS = [
   hash.getSelectorFromName("transaction_executed"),
   hash.getSelectorFromName("evm_contract_deployed"),
@@ -30,6 +32,9 @@ export function toEthLog(
     return null;
   }
 
+  // The event must have at least one key(since the first key is the address)
+  // and an odd number of keys(since each topic is split into two keys).
+  // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/evm.cairo#L169
   if (event.keys.length < 1 || event.keys.length % 2 !== 1) {
     console.error(`Invalid event ${event}`);
     return null;
@@ -37,11 +42,15 @@ export function toEthLog(
 
   // The address is the first key of the event.
   const address = bigIntToHex(BigInt(event.keys[0]));
+  // data field is FieldElement[] where each FieldElement represents a byte of data.
+  // We convert it to a hex string and add leading zeros to make it a valid hex byte string.
+  // Example: [1, 2, 3] -> "010203"
   const data = event.data.map((d) => BigInt(d).toString(16).padStart(2, "0"))
     .join("");
   const topics: string[] = [];
   for (let i = 1; i < event.keys.length; i += 2) {
-    // Topics are split tinto twos keys.
+    // EVM Topics are u256, therefore are split into two felt keys, of at most
+    // 128 bits (remember felt are 252 bits < 256 bits).
     topics[Math.floor(i / 2)] = bigIntToHex(
       BigInt(event.keys[i + 1]) << 128n + BigInt(event.keys[i]),
     );
