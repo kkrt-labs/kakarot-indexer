@@ -18,7 +18,6 @@ const IGNORED_KEYS = [
  * @param transaction A Ethereum transaction.
  * @param event A Starknet event.
  * @returns The log in the Ethereum format, or null if the log is invalid.
- * @throws Error if any function throws a non-Error.
  */
 export function toEthLog(
   { transaction, event }: {
@@ -36,13 +35,15 @@ export function toEthLog(
     return null;
   }
 
+  // The address is the first key of the event.
   const address = bigIntToHex(BigInt(event.keys[0]));
   const data = event.data.map((d) => BigInt(d).toString(16).padStart(2, "0"))
     .join("");
   const topics: string[] = [];
   for (let i = 1; i < event.keys.length; i += 2) {
+    // Topics are split tinto twos keys.
     topics[Math.floor(i / 2)] = bigIntToHex(
-      BigInt(event.keys[i]) + BigInt(event.keys[i + 1]) << 128n,
+      BigInt(event.keys[i + 1]) << 128n + BigInt(event.keys[i]),
     );
   }
   return {
