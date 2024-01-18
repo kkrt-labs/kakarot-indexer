@@ -1,5 +1,6 @@
 // Types
 import { toEthTx } from "./types/transaction.ts";
+import { toEthReceipt } from "./types/receipt.ts";
 import { JsonRpcLog, toEthLog } from "./types/log.ts";
 import { StoreItem } from "./types/storeItem.ts";
 // Starknet
@@ -35,7 +36,9 @@ export default function transform({
   header: BlockHeader;
   events: EventWithTransaction[];
 }) {
-  return (events ?? []).flatMap(({ transaction, receipt }) => {
+  let cumulativeGasUsed = 0n;
+
+  return (events ?? []).flatMap(({ transaction, receipt, event }) => {
     const store: Array<StoreItem> = [];
 
     const ethTx = toEthTx({ transaction, header, receipt });
@@ -50,6 +53,18 @@ export default function transform({
     ethLogs.forEach((ethLog) => {
       store.push({ collection: "logs", data: { log: ethLog } });
     });
+
+    const ethReceipt = toEthReceipt({
+      transaction: ethTx,
+      logs: ethLogs,
+      event,
+      cumulativeGasUsed,
+    });
+    if (ethReceipt === null) {
+      return [];
+    }
+    store.push({ collection: "receipts", data: { receipt: ethReceipt } });
+    cumulativeGasUsed += BigInt(ethReceipt.gasUsed);
 
     return store;
   });

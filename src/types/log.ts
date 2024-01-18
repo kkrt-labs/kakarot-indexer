@@ -1,11 +1,8 @@
-// Transaction
-import { JsonRpcTx } from "../deps.ts";
-
 // Starknet
 import { Event, hash } from "../deps.ts";
 
 // Eth
-import { bigIntToHex } from "../deps.ts";
+import { bigIntToHex, JsonRpcTx } from "../deps.ts";
 
 // Events containing these keys are not
 // ETH logs and should be ignored.
