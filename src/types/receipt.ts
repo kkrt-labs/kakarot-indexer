@@ -28,10 +28,10 @@ export function toEthReceipt(
     event: Event;
     cumulativeGasUsed: bigint;
   },
-): JsonRpcReceipt | null {
+): JsonRpcReceipt {
   // Gas used is the last piece of data in the transaction_executed event.
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
-  const gasUsed = bigIntToHex(BigInt(event.data[event.data.length - 1]));
+  const gasUsed = BigInt(event.data[event.data.length - 1]);
   // Status is the second to last piece of data in the transaction_executed event.
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
   const status = bigIntToHex(BigInt(event.data[event.data.length - 2]));
@@ -50,8 +50,8 @@ export function toEthReceipt(
     blockNumber: transaction.blockNumber,
     from: transaction.from,
     to: transaction.to,
-    cumulativeGasUsed: bigIntToHex(cumulativeGasUsed),
-    gasUsed,
+    cumulativeGasUsed: bigIntToHex(cumulativeGasUsed + gasUsed),
+    gasUsed: bigIntToHex(gasUsed),
     // Incorrect, should be as in EIP1559
     // min(transaction.max_priority_fee_per_gas, transaction.max_fee_per_gas - block.base_fee_per_gas)
     // effective_gas_price = priority_fee_per_gas + block.base_fee_per_gas
@@ -109,7 +109,8 @@ export type JsonRpcReceipt = {
   blockNumber: string | null; // QUANTITY - block number where this transaction was in.
   from: string; // DATA, 20 Bytes - address of the sender.
   to: string | null; // DATA, 20 Bytes - address of the receiver. null when it's a contract creation transaction.
-  cumulativeGasUsed: string; // QUANTITY  - The total amount of gas used when this transaction was executed in the block.
+  cumulativeGasUsed: string; // QUANTITY  - cumulativeGasUsed is the sum of gasUsed by this specific transaction plus the gasUsed
+  // in all preceding transactions in the same block.
   effectiveGasPrice: string; // QUANTITY - The final gas price per gas paid by the sender in wei.
   gasUsed: string; // QUANTITY - The amount of gas used by this specific transaction alone.
   contractAddress: string | null; // DATA, 20 Bytes - The contract address created, if the transaction was a contract creation, otherwise null.
