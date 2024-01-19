@@ -1,8 +1,5 @@
 {
   "version": "3",
-  "redirects": {
-    "https://esm.sh/@ethereumjs/vm": "https://esm.sh/@ethereumjs/vm@7.1.0"
-  },
   "remote": {
     "https://deno.land/std@0.150.0/media_types/_util.ts": "ce9b4fc4ba1c447dafab619055e20fd88236ca6bdd7834a21f98bd193c3fbfa1",
     "https://deno.land/std@0.150.0/media_types/mod.ts": "2d4b6f32a087029272dc59e0a55ae3cc4d1b27b794ccf528e94b1925795b3118",
