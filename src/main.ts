@@ -1,10 +1,9 @@
 // Types
 import { toEthTx } from "./types/transaction.ts";
 import { JsonRpcLog, toEthLog } from "./types/log.ts";
+import { StoreItem } from "./types/storeItem.ts";
 // Starknet
 import { BlockHeader, EventWithTransaction, hash } from "./deps.ts";
-// Eth
-import { JsonRpcTx } from "./deps.ts";
 
 const AUTH_TOKEN = Deno.env.get("APIBARA_AUTH_TOKEN") ?? "";
 const TRANSACTION_EXECUTED = hash.getSelectorFromName(
@@ -37,10 +36,7 @@ export default function transform({
   events: EventWithTransaction[];
 }) {
   return (events ?? []).flatMap(({ transaction, receipt }) => {
-    const store: {
-      collection: "transactions" | "logs";
-      data: { tx: JsonRpcTx } | { log: JsonRpcLog };
-    }[] = [];
+    const store: Array<StoreItem> = [];
 
     const ethTx = toEthTx({ transaction, header, receipt });
     if (ethTx === null) {
