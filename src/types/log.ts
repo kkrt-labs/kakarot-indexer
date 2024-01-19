@@ -15,9 +15,9 @@ const IGNORED_KEYS = [
 ];
 
 /**
- * @param transaction A Ethereum transaction.
- * @param event A Starknet event.
- * @returns The log in the Ethereum format, or null if the log is invalid.
+ * @param transaction - A Ethereum transaction.
+ * @param event - A Starknet event.
+ * @returns - The log in the Ethereum format, or null if the log is invalid.
  */
 export function toEthLog(
   { transaction, event }: {

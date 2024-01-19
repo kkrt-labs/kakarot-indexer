@@ -15,11 +15,11 @@ import {
 import { bytesToHex } from "../deps.ts";
 
 /**
- * @param transaction A Ethereum transaction.
- * @param logs A array of Ethereum logs.
- * @param event The "transaction_executed" event.
- * @param cumulativeGasUsed The cumulative gas used up to this transaction.
- * @returns The Ethereum receipt.
+ * @param transaction - A Ethereum transaction.
+ * @param logs - A array of Ethereum logs.
+ * @param event - The "transaction_executed" event.
+ * @param cumulativeGasUsed - The cumulative gas used up to this transaction.
+ * @returns - The Ethereum receipt.
  */
 export function toEthReceipt(
   { transaction, logs, event, cumulativeGasUsed }: {
@@ -67,8 +67,8 @@ export function toEthReceipt(
 type Log = [address: Uint8Array, topics: Uint8Array[], data: Uint8Array];
 
 /**
- * @param log A Ethereum json rpc log.
- * @returns A Ethereum log.
+ * @param log - JSON RPC formatted Ethereum json rpc log.
+ * @returns - A Ethereum log.
  */
 function toLog(log: JsonRpcLog): Log {
   return [
@@ -79,8 +79,8 @@ function toLog(log: JsonRpcLog): Log {
 }
 
 /**
- * @param logs A array of Ethereum logs.
- * @returns The corresponding logs bloom.
+ * @param logs - A array of Ethereum logs.
+ * @returns - The corresponding logs bloom.
  *
  * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */

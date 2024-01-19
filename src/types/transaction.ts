@@ -25,11 +25,11 @@ import {
 } from "../deps.ts";
 
 /**
- * @param transaction A Kakarot transaction.
- * @param header The block header of the block containing the transaction.
+ * @param transaction - A Kakarot transaction.
+ * @param header - The block header of the block containing the transaction.
  * @param receipt The transaction receipt of the transaction.
- * @returns The transaction in the Ethereum format, or null if the transaction is invalid.
- * @throws Error if any function throws a non-Error.
+ * @returns - The transaction in the Ethereum format, or null if the transaction is invalid.
+ * @throws - Error if any function throws a non-Error.
  */
 export function toEthTx(
   { transaction, header, receipt }: {
@@ -95,12 +95,12 @@ export function toEthTx(
 }
 
 /**
- * @param tx Typed transaction to be signed.
- * @param r Signature r value.
- * @param s Signature s value.
- * @param v Signature v value. In case of EIP155ReplayProtection, must include the chain ID.
- * @returns Passed transaction with the signature added.
- * @throws Error if the transaction is a BlobEIP4844Tx or if v param is < 35 for a
+ * @param tx - Typed transaction to be signed.
+ * @param r - Signature r value.
+ * @param s - Signature s value.
+ * @param v - Signature v value. In case of EIP155ReplayProtection, must include the chain ID.
+ * @returns - Passed transaction with the signature added.
+ * @throws - Error if the transaction is a BlobEIP4844Tx or if v param is < 35 for a
  *         LegacyTx.
  */
 function addSignature(
@@ -165,13 +165,13 @@ function addSignature(
 }
 
 /**
- * @param tx Typed transaction to be converted.
- * @param blockHash Block hash of the transaction.
- * @param blockNumber Block number of the transaction.
- * @param index Index of the transaction in the block.
- * @param from Address of the transaction sender.
+ * @param tx - Typed transaction to be converted.
+ * @param blockHash - Block hash of the transaction.
+ * @param blockNumber - Block number of the transaction.
+ * @param index - Index of the transaction in the block.
+ * @param from - Address of the transaction sender.
  *
- * @throws Error if the transaction is not signed.
+ * @throws - Error if the transaction is not signed.
  *
  * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */
