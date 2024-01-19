@@ -10,10 +10,11 @@ import { bigIntToHex } from "../deps.ts";
 // Events containing these keys are not
 // ETH logs and should be ignored.
 const IGNORED_KEYS = [
-  hash.getSelectorFromName("transaction_executed"),
-  hash.getSelectorFromName("evm_contract_deployed"),
-  hash.getSelectorFromName("Transfer"),
-  hash.getSelectorFromName("Approval"),
+  BigInt(hash.getSelectorFromName("transaction_executed")),
+  BigInt(hash.getSelectorFromName("evm_contract_deployed")),
+  BigInt(hash.getSelectorFromName("Transfer")),
+  BigInt(hash.getSelectorFromName("Approval")),
+  BigInt(hash.getSelectorFromName("OwnershipTransferred")),
 ];
 
 /**
@@ -28,13 +29,13 @@ export function toEthLog(
   },
 ): JsonRpcLog | null {
   // Filter out ignored events which aren't ETH logs.
-  if (IGNORED_KEYS.includes(event.keys[0])) {
+  if (IGNORED_KEYS.includes(BigInt(event.keys[0]))) {
     return null;
   }
 
-  // The event must have at least one key(since the first key is the address)
-  // and an odd number of keys(since each topic is split into two keys).
-  // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/evm.cairo#L169
+  // The event must have at least one key (since the first key is the address)
+  // and an odd number of keys (since each topic is split into two keys).
+  // <https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/evm.cairo#L169>
   if (event.keys.length < 1 || event.keys.length % 2 !== 1) {
     console.error(`Invalid event ${event}`);
     return null;
@@ -51,19 +52,20 @@ export function toEthLog(
   for (let i = 1; i < event.keys.length; i += 2) {
     // EVM Topics are u256, therefore are split into two felt keys, of at most
     // 128 bits (remember felt are 252 bits < 256 bits).
-    topics[Math.floor(i / 2)] = bigIntToHex(
-      BigInt(event.keys[i + 1]) << 128n + BigInt(event.keys[i]),
-    );
+    topics[Math.floor(i / 2)] = "0x" + ((BigInt(event.keys[i + 1]) << 128n) +
+      BigInt(event.keys[i])).toString(16).padStart(64, "0");
   }
+  const index = event.index ?? 0;
+
   return {
     removed: false,
-    logIndex: event.index.toString(),
+    logIndex: index.toString(),
     transactionIndex: transaction.transactionIndex,
     transactionHash: transaction.hash,
     blockHash: transaction.blockHash,
     blockNumber: transaction.blockNumber,
     address,
-    data,
+    data: `0x${data}`,
     topics,
   };
 }
