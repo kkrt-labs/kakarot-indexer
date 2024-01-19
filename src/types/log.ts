@@ -1,11 +1,8 @@
-// Transaction
-import { JsonRpcTx } from "../deps.ts";
-
 // Starknet
 import { Event, hash } from "../deps.ts";
 
 // Eth
-import { bigIntToHex } from "../deps.ts";
+import { bigIntToHex, JsonRpcTx } from "../deps.ts";
 
 // Events containing these keys are not
 // ETH logs and should be ignored.
@@ -18,9 +15,9 @@ const IGNORED_KEYS = [
 ];
 
 /**
- * @param transaction A Ethereum transaction.
- * @param event A Starknet event.
- * @returns The log in the Ethereum format, or null if the log is invalid.
+ * @param transaction - A Ethereum transaction.
+ * @param event - A Starknet event.
+ * @returns - The log in the Ethereum format, or null if the log is invalid.
  */
 export function toEthLog(
   { transaction, event }: {

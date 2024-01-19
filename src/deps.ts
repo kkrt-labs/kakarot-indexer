@@ -30,5 +30,9 @@ export {
   bigIntToHex,
   bytesToHex,
   concatBytes,
+  generateAddress,
+  hexToBytes,
   intToHex,
 } from "https://esm.sh/@ethereumjs/util@9.0.1";
+
+export { Bloom } from "https://esm.sh/@ethereumjs/vm@7.1.0";
