@@ -35,6 +35,7 @@ export function toEthReceipt(
   // Status is the second to last piece of data in the transaction_executed event.
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
   const status = bigIntToHex(BigInt(event.data[event.data.length - 2]));
+  // If there is no destination, calculate the deployed contract address.
   const contractAddress = transaction.to === null
     ? bytesToHex(generateAddress(
       hexToBytes(transaction.from),
@@ -51,10 +52,11 @@ export function toEthReceipt(
     to: transaction.to,
     cumulativeGasUsed: bigIntToHex(cumulativeGasUsed),
     gasUsed,
-    effectiveGasPrice: transaction.gasPrice,
     // Incorrect, should be as in EIP1559
     // min(transaction.max_priority_fee_per_gas, transaction.max_fee_per_gas - block.base_fee_per_gas)
     // effective_gas_price = priority_fee_per_gas + block.base_fee_per_gas
+    // Issue is that for now we don't have access to the block base fee per gas.
+    effectiveGasPrice: transaction.gasPrice,
     contractAddress: contractAddress,
     logs,
     logsBloom: logsBloom(logs.map(toLog)),
