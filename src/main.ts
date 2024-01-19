@@ -1,9 +1,9 @@
-// Util
-import { addSignature, toJsonRpcTx } from "./utils/transaction.ts";
+// Types
+import { toEthTx } from "./types/transaction.ts";
+import { JsonRpcLog, toEthLog } from "./types/log.ts";
+import { StoreItem } from "./types/storeItem.ts";
 // Starknet
-import { BlockHeader, EventWithTransaction, hash, uint256 } from "./deps.ts";
-// Ethereum
-import { bigIntToBytes, concatBytes, TransactionFactory } from "./deps.ts";
+import { BlockHeader, EventWithTransaction, hash } from "./deps.ts";
 
 const AUTH_TOKEN = Deno.env.get("APIBARA_AUTH_TOKEN") ?? "";
 const TRANSACTION_EXECUTED = hash.getSelectorFromName(
@@ -19,9 +19,6 @@ export const config = {
     header: { weak: true },
     // Filters are unions
     events: [
-      // This event is emitted when a transaction is executed in Kakarot, by an EOA.
-      // ⚠️ If there are two Kakarots deployed, events will collide
-      // If someone deploys a contract that emits this event, it will be picked up (get poisoned)
       {
         keys: [TRANSACTION_EXECUTED],
       },
@@ -39,65 +36,21 @@ export default function transform({
   events: EventWithTransaction[];
 }) {
   return (events ?? []).flatMap(({ transaction, receipt }) => {
-    const calldata = transaction.invokeV1?.calldata;
-    if (!calldata) {
-      console.error("No calldata");
+    const store: Array<StoreItem> = [];
+
+    const ethTx = toEthTx({ transaction, header, receipt });
+    if (ethTx === null) {
       return [];
     }
-    const callArrayLen = BigInt(calldata[0]);
-    if (callArrayLen !== 1n) {
-      console.error(`Invalid call array length ${callArrayLen}`);
-      return [];
-    }
+    store.push({ collection: "transactions", data: { tx: ethTx } });
 
-    // callArrayLen <- calldata[0]
-    // to <- calldata[1]
-    // selector <- calldata[2];
-    // dataOffset <- calldata[3]
-    // dataLength <- calldata[4]
-    // calldataLen <- calldata[5]
-    const bytes = concatBytes(
-      ...calldata
-        .slice(6)
-        .map((x) => bigIntToBytes(BigInt(x))),
-    );
+    const ethLogs = receipt.events.map((e) => {
+      return toEthLog({ transaction: ethTx, event: e });
+    }).filter((e) => e !== null) as JsonRpcLog[];
+    ethLogs.forEach((ethLog) => {
+      store.push({ collection: "logs", data: { log: ethLog } });
+    });
 
-    const signature = transaction.meta.signature;
-    if (signature.length !== 5) {
-      console.error(`Invalid signature length ${signature.length}`);
-      return [];
-    }
-    const r = uint256.uint256ToBN({ high: signature[1], low: signature[0] });
-    const s = uint256.uint256ToBN({ high: signature[3], low: signature[2] });
-    const v = BigInt(signature[4]);
-
-    try {
-      const ethTxUnsigned = TransactionFactory.fromSerializedData(bytes, {
-        freeze: false,
-      });
-      const ethTx = addSignature(ethTxUnsigned, r, s, v);
-
-      const blockHash = header.blockHash;
-      const blockNumber = header.blockNumber;
-      const index = receipt.transactionIndex;
-
-      const JsonRpcTx = toJsonRpcTx(ethTx, blockHash, blockNumber, index);
-
-      return {
-        collection: "transactions",
-        data: {
-          tx: JsonRpcTx,
-        },
-      };
-    } catch (e) {
-      if (e instanceof Error) {
-        console.error(`Invalid transaction: ${e.message}`);
-      } else {
-        console.error(`Unknown throw ${e}`);
-        throw e;
-      }
-      // TODO: Ping alert webhooks
-      return [];
-    }
+    return store;
   });
 }
