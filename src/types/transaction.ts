@@ -25,19 +25,67 @@ import {
 } from "../deps.ts";
 
 /**
- * @param transaction - A Kakarot transaction.
+ * @param transaction - Typed transaction to be converted.
  * @param header - The block header of the block containing the transaction.
  * @param receipt The transaction receipt of the transaction.
  * @returns - The transaction in the Ethereum format, or null if the transaction is invalid.
  * @throws - Error if any function throws a non-Error.
+ *
+ * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */
 export function toEthTx(
   { transaction, header, receipt }: {
-    transaction: Transaction;
+    transaction: TypedTransaction;
     header: BlockHeader;
     receipt: TransactionReceipt;
   },
 ): JsonRpcTx | null {
+  const blockHash = header.blockHash;
+  const blockNumber = header.blockNumber;
+  const index = receipt.transactionIndex;
+
+  const txJSON = transaction.toJSON();
+  if (
+    txJSON.r === undefined || txJSON.s === undefined || txJSON.v === undefined
+  ) {
+    console.error(
+      `Transaction is not signed: {r: ${txJSON.r}, s: ${txJSON.s}, v: ${txJSON.v}}`,
+    );
+    // TODO: Ping alert webhooks
+    return null;
+  }
+  return {
+    blockHash,
+    blockNumber,
+    from: transaction.getSenderAddress().toString(),
+    gas: txJSON.gasLimit!,
+    gasPrice: txJSON.gasPrice ?? txJSON.maxFeePerGas!,
+    maxFeePerGas: txJSON.maxFeePerGas,
+    maxPriorityFeePerGas: txJSON.maxPriorityFeePerGas,
+    type: intToHex(transaction.type),
+    accessList: txJSON.accessList,
+    chainId: txJSON.chainId,
+    hash: bytesToHex(transaction.hash()),
+    input: txJSON.data!,
+    nonce: txJSON.nonce!,
+    to: transaction.to?.toString() ?? null,
+    transactionIndex: index,
+    value: txJSON.value!,
+    v: txJSON.v,
+    r: txJSON.r,
+    s: txJSON.s,
+    maxFeePerBlobGas: txJSON.maxFeePerBlobGas,
+    blobVersionedHashes: txJSON.blobVersionedHashes,
+  };
+}
+
+/**
+ * @param transaction - A Kakarot transaction.
+ * @returns - The Typed transaction in the Ethereum format
+ */
+export function toTypedEthTx({ transaction }: {
+  transaction: Transaction;
+}): TypedTransaction | null {
   const calldata = transaction.invokeV1?.calldata;
   if (!calldata) {
     console.error("No calldata");
@@ -75,13 +123,7 @@ export function toEthTx(
     const ethTxUnsigned = TransactionFactory.fromSerializedData(bytes, {
       freeze: false,
     });
-    const ethTx = addSignature(ethTxUnsigned, r, s, v);
-
-    const blockHash = header.blockHash;
-    const blockNumber = header.blockNumber;
-    const index = receipt.transactionIndex;
-
-    return toJsonRpcTx(ethTx, blockHash, blockNumber, index);
+    return addSignature(ethTxUnsigned, r, s, v);
   } catch (e) {
     if (e instanceof Error) {
       console.error(`Invalid transaction: ${e.message}`);
@@ -162,54 +204,4 @@ function addSignature(
   return TransactionFactory.fromTxData(
     TypedTxData,
   );
-}
-
-/**
- * @param tx - Typed transaction to be converted.
- * @param blockHash - Block hash of the transaction.
- * @param blockNumber - Block number of the transaction.
- * @param index - Index of the transaction in the block.
- * @param from - Address of the transaction sender.
- *
- * @throws - Error if the transaction is not signed.
- *
- * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
- */
-function toJsonRpcTx(
-  tx: TypedTransaction,
-  blockHash: string | null,
-  blockNumber: string | null,
-  txIndex: string | null,
-): JsonRpcTx {
-  const txJSON = tx.toJSON();
-  if (
-    txJSON.r === undefined || txJSON.s === undefined || txJSON.v === undefined
-  ) {
-    throw new Error(
-      `Transaction is not signed: {r: ${txJSON.r}, s: ${txJSON.s}, v: ${txJSON.v}}`,
-    );
-  }
-  return {
-    blockHash,
-    blockNumber,
-    from: tx.getSenderAddress().toString(),
-    gas: txJSON.gasLimit!,
-    gasPrice: txJSON.gasPrice ?? txJSON.maxFeePerGas!,
-    maxFeePerGas: txJSON.maxFeePerGas,
-    maxPriorityFeePerGas: txJSON.maxPriorityFeePerGas,
-    type: intToHex(tx.type),
-    accessList: txJSON.accessList,
-    chainId: txJSON.chainId,
-    hash: bytesToHex(tx.hash()),
-    input: txJSON.data!,
-    nonce: txJSON.nonce!,
-    to: tx.to?.toString() ?? null,
-    transactionIndex: txIndex,
-    value: txJSON.value!,
-    v: txJSON.v,
-    r: txJSON.r,
-    s: txJSON.s,
-    maxFeePerBlobGas: txJSON.maxFeePerBlobGas,
-    blobVersionedHashes: txJSON.blobVersionedHashes,
-  };
 }

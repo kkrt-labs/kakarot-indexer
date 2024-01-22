@@ -1,11 +1,18 @@
 {
   "version": "3",
+  "redirects": {
+    "https://esm.sh/@ethereumjs/rlp": "https://esm.sh/@ethereumjs/rlp@5.0.1"
+  },
   "remote": {
     "https://deno.land/std@0.150.0/media_types/_util.ts": "ce9b4fc4ba1c447dafab619055e20fd88236ca6bdd7834a21f98bd193c3fbfa1",
     "https://deno.land/std@0.150.0/media_types/mod.ts": "2d4b6f32a087029272dc59e0a55ae3cc4d1b27b794ccf528e94b1925795b3118",
     "https://deno.land/std@0.150.0/media_types/vendor/mime-db.v1.52.0.ts": "724cee25fa40f1a52d3937d6b4fbbfdd7791ff55e1b7ac08d9319d5632c7f5af",
     "https://deno.land/x/xhr@0.3.0/mod.ts": "094aacd627fd9635cd942053bf8032b5223b909858fa9dc8ffa583752ff63b20",
     "https://esm.sh/@apibara/indexer@0.2.2/starknet": "f67c50a85f58eaa85292c0b3fdb0af5d0a9b2cb91dc27f1a7d289fd9b240ef5a",
+    "https://esm.sh/@ethereumjs/block@5.0.1": "c0d3d2b056c05c84a41b532395bb9ff00d97266bcd9aa0077cd280dad81fc9f7",
+    "https://esm.sh/@ethereumjs/evm@2.1.0": "f9ef9071e1f4dc9aa56d8409d14f733498ba254d20f34914978c4fa45605dfff",
+    "https://esm.sh/@ethereumjs/rlp@5.0.1": "7b9dd4514d91155bac856e0ba4b82303667491dad35c3f6f9544a5c8b6253ca6",
+    "https://esm.sh/@ethereumjs/trie@6.0.1": "2ea95b4d545ec2971bde5b938442b1c8885c6651b54201a4aebcdb32d619fd46",
     "https://esm.sh/@ethereumjs/tx@5.1.0": "db89697de73a85aec54490818cd5e604b20dcb5d90bcdc7f19d4ca96fbb30286",
     "https://esm.sh/@ethereumjs/util@9.0.1": "9d8c888c45407154e055b5d546a44f534c7478c21cc1f85d67cc43c1b5d4bec8",
     "https://esm.sh/@ethereumjs/vm@7.1.0": "7624a3e9f45c79ea6758285f1e9ff3fba7b9fee0c88e3899dd6fed5ba1a2a391",

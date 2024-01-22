@@ -2,7 +2,7 @@
 import { Event, hash } from "../deps.ts";
 
 // Eth
-import { bigIntToHex, JsonRpcTx } from "../deps.ts";
+import { bigIntToHex, hexToBytes, JsonRpcTx, Log } from "../deps.ts";
 
 // Events containing these keys are not
 // ETH logs and should be ignored.
@@ -65,6 +65,18 @@ export function toEthLog(
     data: `0x${data}`,
     topics,
   };
+}
+
+/**
+ * @param log - JSON RPC formatted Ethereum json rpc log.
+ * @returns - A Ethereum log.
+ */
+export function fromJsonRpcLog(log: JsonRpcLog): Log {
+  return [
+    hexToBytes(log.address),
+    log.topics.map(hexToBytes),
+    hexToBytes(log.data),
+  ];
 }
 
 /**

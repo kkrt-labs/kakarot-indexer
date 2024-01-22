@@ -1,5 +1,5 @@
 // Types
-import { JsonRpcLog } from "./log.ts";
+import { fromJsonRpcLog, JsonRpcLog } from "./log.ts";
 
 // Starknet
 import { Event } from "../deps.ts";
@@ -8,11 +8,13 @@ import { Event } from "../deps.ts";
 import {
   bigIntToHex,
   Bloom,
+  bytesToHex,
   generateAddress,
   hexToBytes,
   JsonRpcTx,
+  Log,
+  TxReceipt,
 } from "../deps.ts";
-import { bytesToHex } from "../deps.ts";
 
 /**
  * @param transaction - A Ethereum transaction.
@@ -59,23 +61,9 @@ export function toEthReceipt(
     effectiveGasPrice: transaction.gasPrice,
     contractAddress: contractAddress,
     logs,
-    logsBloom: logsBloom(logs.map(toLog)),
+    logsBloom: logsBloom(logs.map(fromJsonRpcLog)),
     status,
   };
-}
-
-type Log = [address: Uint8Array, topics: Uint8Array[], data: Uint8Array];
-
-/**
- * @param log - JSON RPC formatted Ethereum json rpc log.
- * @returns - A Ethereum log.
- */
-function toLog(log: JsonRpcLog): Log {
-  return [
-    hexToBytes(log.address),
-    log.topics.map(hexToBytes),
-    hexToBytes(log.data),
-  ];
 }
 
 /**
@@ -97,6 +85,16 @@ function logsBloom(logs: Log[]): string {
     }
   }
   return bytesToHex(bloom.bitvector);
+}
+
+export function fromJsonRpcReceipt(receipt: JsonRpcReceipt): TxReceipt {
+  const status = BigInt(receipt.status ?? "0");
+  return {
+    cumulativeBlockGasUsed: BigInt(receipt.cumulativeGasUsed),
+    bitvector: hexToBytes(receipt.logsBloom),
+    logs: receipt.logs.map(fromJsonRpcLog),
+    status: status === 0n ? 0 : 1,
+  };
 }
 
 /**
