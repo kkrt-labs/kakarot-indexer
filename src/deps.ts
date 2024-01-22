@@ -35,4 +35,13 @@ export {
   intToHex,
 } from "https://esm.sh/@ethereumjs/util@9.0.1";
 
-export { Bloom } from "https://esm.sh/@ethereumjs/vm@7.1.0";
+export { Bloom, encodeReceipt } from "https://esm.sh/@ethereumjs/vm@7.1.0";
+export type { TxReceipt } from "https://esm.sh/@ethereumjs/vm@7.1.0";
+
+export type { JsonHeader } from "https://esm.sh/@ethereumjs/block@5.0.1";
+
+export { Trie } from "https://esm.sh/@ethereumjs/trie@6.0.1";
+
+export type { Log } from "https://esm.sh/@ethereumjs/evm@2.1.0";
+
+export { RLP } from "https://esm.sh/@ethereumjs/rlp@5.0.1";
