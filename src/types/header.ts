@@ -4,7 +4,20 @@ import { BlockHeader } from "../deps.ts";
 // Eth
 import { bigIntToHex, Bloom, bytesToHex, JsonHeader } from "../deps.ts";
 
+/**
+ * The gas limit of a Kakarot Ethereum block.
+ * The gas limit for now is arbitrarily set to 30,000,000
+ * and should be adjusted in the future based on the
+ * first Kakarot testnet.
+ */
 const BLOCK_GAS_LIMIT = 30_000_000n;
+/**
+ * The base fee per gas of a Kakarot Ethereum block.
+ * Since Kakarot does not have a fee market, the base fee
+ * per gas should currently be the Starknet gas price.
+ * Since this field is not present in the Starknet
+ * block header, we arbitrarily set it to 100 Gwei.
+ */
 const BASE_FEE_PER_GAS = 100_000_000_000n;
 
 /**
@@ -26,7 +39,7 @@ export function toEthHeader(
 ): JsonHeader {
   return {
     parentHash: header.parentBlockHash,
-    uncleHash: "0x",
+    uncleHash: "0x".padEnd(66, "0"),
     coinbase: header.sequencerAddress,
     stateRoot: header.newRoot,
     transactionsTrie: bytesToHex(transactionRoot),
@@ -38,7 +51,7 @@ export function toEthHeader(
     gasUsed: bigIntToHex(gasUsed),
     timestamp: header.timestamp,
     extraData: "0x",
-    mixHash: "0x",
+    mixHash: "0x".padEnd(66, "0"),
     nonce: undefined,
     baseFeePerGas: bigIntToHex(BASE_FEE_PER_GAS), // TBD
   };
