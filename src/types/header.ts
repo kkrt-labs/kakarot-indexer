@@ -9,14 +9,17 @@ import { bigIntToHex, Bloom, bytesToHex, JsonHeader } from "../deps.ts";
  * The gas limit for now is arbitrarily set to 30,000,000
  * and should be adjusted in the future based on the
  * first Kakarot testnet.
+ * @todo Update this value after the first Kakarot testnet.
  */
 const BLOCK_GAS_LIMIT = 30_000_000n;
+
 /**
  * The base fee per gas of a Kakarot Ethereum block.
  * Since Kakarot does not have a fee market, the base fee
  * per gas should currently be the Starknet gas price.
  * Since this field is not present in the Starknet
  * block header, we arbitrarily set it to 100 Gwei.
+ * @todo Update this value after the first Kakarot testnet.
  */
 const BASE_FEE_PER_GAS = 100_000_000_000n;
 
@@ -24,6 +27,7 @@ const BASE_FEE_PER_GAS = 100_000_000_000n;
  * The Kakarot Ethereum coinbase. Needs to be updated with
  * the actual Kakarot corresponding Sequencer Ethereum
  * address.
+ * @todo Update this value BEFORE the first Kakarot testnet.
  */
 const COINBASE = "0xabde1".padEnd(42, "0");
 
