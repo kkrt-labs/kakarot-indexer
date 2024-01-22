@@ -17,7 +17,7 @@ const TRANSACTION_EXECUTED = hash.getSelectorFromName(
 export const config = {
   streamUrl: "https://goerli.starknet.a5a.ch",
   authToken: AUTH_TOKEN,
-  startingBlock: 934875,
+  startingBlock: 934_875,
   network: "starknet",
   filter: {
     header: { weak: true },
@@ -61,11 +61,15 @@ export default async function transform({
       return null;
     }
     const ethTx = toEthTx({ transaction: typedEthTx, header, receipt });
+    // Can be null if:
+    // 1. The typed transaction if missing a signature param (v, r, s).
+    if (ethTx === null) {
+      return null;
+    }
 
     // Can be null if:
     // 1. The event is part of the defined ignored events (see IGNORED_KEYS).
     // 2. The event has an invalid number of keys.
-    //
     const ethLogs = receipt.events.map((e) => {
       return toEthLog({ transaction: ethTx, event: e });
     }).filter((e) => e !== null) as JsonRpcLog[];

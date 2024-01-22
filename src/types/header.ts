@@ -9,9 +9,11 @@ const BASE_FEE_PER_GAS = 100_000_000_000n;
 
 /**
  * @param header - A Starknet block header.
- * @param receipts - The receipts of the transactions in the block in json RPC format.
- * @param transactions - The transactions in the block in a typed transaction format.
- * @returns The Ethereum block header.
+ * @param gasUsed - The total gas used in the block.
+ * @param logsBloom - The logs bloom of the block.
+ * @param receiptRoot - The transaction receipt trie root of the block.
+ * @param transactionRoot - The transaction trie root of the block.
+ * @returns The Ethereum block header in the json RPC format.
  */
 export function toEthHeader(
   { header, gasUsed, logsBloom, receiptRoot, transactionRoot }: {

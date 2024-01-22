@@ -39,7 +39,7 @@ export function toEthTx(
     header: BlockHeader;
     receipt: TransactionReceipt;
   },
-): JsonRpcTx {
+): JsonRpcTx | null {
   const blockHash = header.blockHash;
   const blockNumber = header.blockNumber;
   const index = receipt.transactionIndex;
@@ -48,9 +48,11 @@ export function toEthTx(
   if (
     txJSON.r === undefined || txJSON.s === undefined || txJSON.v === undefined
   ) {
-    throw new Error(
+    console.error(
       `Transaction is not signed: {r: ${txJSON.r}, s: ${txJSON.s}, v: ${txJSON.v}}`,
     );
+    // TODO: Ping alert webhooks
+    return null;
   }
   return {
     blockHash,
