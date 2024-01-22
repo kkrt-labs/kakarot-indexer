@@ -49,7 +49,7 @@ export default async function transform({
   const store: Array<StoreItem> = [];
 
   await Promise.all(
-    (events ?? []).map(async ({ transaction, receipt, event }, i) => {
+    (events ?? []).map(async ({ transaction, receipt, event }) => {
       const typedEthTx = toTypedEthTx({ transaction });
       // Can be null if:
       // 1. The transaction is missing calldata.
@@ -82,14 +82,23 @@ export default async function transform({
         cumulativeGasUsed,
       });
 
+      // Trie code is based off:
+      // - https://github.com/ethereumjs/ethereumjs-monorepo/blob/master/packages/block/src/block.ts#L85
+      // - https://github.com/ethereumjs/ethereumjs-monorepo/blob/master/packages/vm/src/buildBlock.ts#L153
       // Add the transaction to the transaction trie.
-      await transactionTrie.put(RLP.encode(i), typedEthTx.serialize());
+      await transactionTrie.put(
+        RLP.encode(Number(ethTx.transactionIndex)),
+        typedEthTx.serialize(),
+      );
       // Add the receipt to the receipt trie.
       const encodedReceipt = encodeReceipt(
         fromJsonRpcReceipt(ethReceipt),
         typedEthTx.type,
       );
-      await receiptTrie.put(RLP.encode(i), encodedReceipt);
+      await receiptTrie.put(
+        RLP.encode(Number(ethTx.transactionIndex)),
+        encodedReceipt,
+      );
       // Add the logs bloom of the receipt to the block logs bloom.
       const receiptBloom = new Bloom(hexToBytes(ethReceipt.logsBloom));
       blockLogsBloom.or(receiptBloom);
