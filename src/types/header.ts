@@ -21,6 +21,13 @@ const BLOCK_GAS_LIMIT = 30_000_000n;
 const BASE_FEE_PER_GAS = 100_000_000_000n;
 
 /**
+ * The Kakarot Ethereum coinbase. Needs to be updated with
+ * the actual Kakarot corresponding Sequencer Ethereum
+ * address.
+ */
+const COINBASE = "0xabde1".padEnd(42, "0");
+
+/**
  * @param header - A Starknet block header.
  * @param gasUsed - The total gas used in the block.
  * @param logsBloom - The logs bloom of the block.
@@ -40,7 +47,7 @@ export function toEthHeader(
   return {
     parentHash: header.parentBlockHash,
     uncleHash: "0x".padEnd(66, "0"),
-    coinbase: header.sequencerAddress,
+    coinbase: COINBASE,
     stateRoot: header.newRoot,
     transactionsTrie: bytesToHex(transactionRoot),
     receiptTrie: bytesToHex(receiptRoot),
