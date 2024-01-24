@@ -120,6 +120,9 @@ export default async function transform({
     receiptRoot: receiptTrie.root(),
     transactionRoot: transactionTrie.root(),
   });
-  store.push({ collection: "headers", data: { header: ethHeader } });
+  store.push({
+    collection: "headers",
+    data: { header: ethHeader },
+  });
   return store;
 }

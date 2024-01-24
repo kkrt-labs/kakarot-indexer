@@ -3,7 +3,7 @@ import { JsonRpcLog } from "./log.ts";
 import { JsonRpcReceipt } from "./receipt.ts";
 
 // Eth
-import { JsonHeader, JsonRpcTx } from "../deps.ts";
+import { JsonRpcBlock, JsonRpcTx } from "../deps.ts";
 
 type Collection =
   | "transactions"
@@ -16,5 +16,5 @@ export type StoreItem<C = Collection> = {
   data: C extends "transactions" ? { tx: JsonRpcTx }
     : C extends "logs" ? { log: JsonRpcLog }
     : C extends "receipts" ? { receipt: JsonRpcReceipt }
-    : { header: JsonHeader };
+    : { header: JsonRpcBlock };
 };
