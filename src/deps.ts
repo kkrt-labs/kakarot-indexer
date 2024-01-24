@@ -38,7 +38,7 @@ export {
 export { Bloom, encodeReceipt } from "https://esm.sh/@ethereumjs/vm@7.1.0";
 export type { TxReceipt } from "https://esm.sh/@ethereumjs/vm@7.1.0";
 
-export type { JsonHeader } from "https://esm.sh/@ethereumjs/block@5.0.1";
+export type { JsonRpcBlock } from "https://esm.sh/@ethereumjs/block@5.0.1";
 
 export { Trie } from "https://esm.sh/@ethereumjs/trie@6.0.1";
 

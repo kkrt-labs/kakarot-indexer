@@ -2,7 +2,7 @@
 import { BlockHeader } from "../deps.ts";
 
 // Eth
-import { bigIntToHex, Bloom, bytesToHex, JsonHeader } from "../deps.ts";
+import { bigIntToHex, Bloom, bytesToHex, JsonRpcBlock } from "../deps.ts";
 
 /**
  * The gas limit of a Kakarot Ethereum block.
@@ -38,6 +38,11 @@ const COINBASE = "0xabde1".padEnd(42, "0");
  * @param receiptRoot - The transaction receipt trie root of the block.
  * @param transactionRoot - The transaction trie root of the block.
  * @returns The Ethereum block header in the json RPC format.
+ *
+ * Note: We return a JsonRpcBlock instead of a JsonHeader, since the
+ * JsonHeader from the ethereumjs-mono repo does not follow the
+ * Ethereum json RPC format for certain fields and is used as an
+ * internal type.
  */
 export function toEthHeader(
   { header, gasUsed, logsBloom, receiptRoot, transactionRoot }: {
@@ -47,23 +52,31 @@ export function toEthHeader(
     receiptRoot: Uint8Array;
     transactionRoot: Uint8Array;
   },
-): JsonHeader {
+): JsonRpcBlock {
+  const maybeTs = Date.parse(header.timestamp);
+  const ts = isNaN(maybeTs) ? 0 : maybeTs;
+
   return {
-    parentHash: header.parentBlockHash,
-    uncleHash: "0x".padEnd(66, "0"),
-    coinbase: COINBASE,
-    stateRoot: header.newRoot,
-    transactionsTrie: bytesToHex(transactionRoot),
-    receiptTrie: bytesToHex(receiptRoot),
-    logsBloom: bytesToHex(logsBloom.bitvector),
-    difficulty: "0x0",
     number: header.blockNumber,
+    hash: header.blockHash,
+    parentHash: header.parentBlockHash,
+    mixHash: "0x".padEnd(66, "0"),
+    nonce: "0x".padEnd(18, "0"),
+    sha3Uncles: "0x".padEnd(66, "0"),
+    logsBloom: bytesToHex(logsBloom.bitvector),
+    transactionsRoot: bytesToHex(transactionRoot),
+    stateRoot: header.newRoot,
+    receiptsRoot: bytesToHex(receiptRoot),
+    miner: COINBASE,
+    difficulty: "0x00",
+    totalDifficulty: "0x00",
+    extraData: "0x",
+    size: "0x00",
     gasLimit: bigIntToHex(BLOCK_GAS_LIMIT),
     gasUsed: bigIntToHex(gasUsed),
-    timestamp: header.timestamp,
-    extraData: "0x",
-    mixHash: "0x".padEnd(66, "0"),
-    nonce: undefined,
+    timestamp: bigIntToHex(BigInt(ts)),
+    transactions: [], // we are using this structure to represent a Kakarot block header, so we don't need to include transactions
+    uncles: [],
     baseFeePerGas: bigIntToHex(BASE_FEE_PER_GAS), // TBD
   };
 }
