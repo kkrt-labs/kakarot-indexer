@@ -1,8 +1,17 @@
+// Utils
+import { padString } from "../utils/hex.ts";
+
 // Starknet
 import { BlockHeader } from "../deps.ts";
 
 // Eth
-import { bigIntToHex, Bloom, bytesToHex, JsonRpcBlock } from "../deps.ts";
+import {
+  bigIntToHex,
+  Bloom,
+  bytesToHex,
+  JsonRpcBlock,
+  PrefixedHexString,
+} from "../deps.ts";
 
 /**
  * The gas limit of a Kakarot Ethereum block.
@@ -29,10 +38,12 @@ const BASE_FEE_PER_GAS = 100_000_000_000n;
  * address.
  * @todo Update this value BEFORE the first Kakarot testnet.
  */
-const COINBASE = "0xabde1".padEnd(42, "0");
+const COINBASE = padString("0xabde1", 20);
 
 /**
  * @param header - A Starknet block header.
+ * @param blockNumber - The block number of the transaction in hex.
+ * @param blockHash - The block hash of the transaction in hex.
  * @param gasUsed - The total gas used in the block.
  * @param logsBloom - The logs bloom of the block.
  * @param receiptRoot - The transaction receipt trie root of the block.
@@ -45,8 +56,18 @@ const COINBASE = "0xabde1".padEnd(42, "0");
  * internal type.
  */
 export function toEthHeader(
-  { header, gasUsed, logsBloom, receiptRoot, transactionRoot }: {
+  {
+    header,
+    blockNumber,
+    blockHash,
+    gasUsed,
+    logsBloom,
+    receiptRoot,
+    transactionRoot,
+  }: {
     header: BlockHeader;
+    blockNumber: PrefixedHexString;
+    blockHash: PrefixedHexString;
     gasUsed: bigint;
     logsBloom: Bloom;
     receiptRoot: Uint8Array;
@@ -57,12 +78,12 @@ export function toEthHeader(
   const ts = isNaN(maybeTs) ? 0 : maybeTs;
 
   return {
-    number: header.blockNumber,
-    hash: header.blockHash,
-    parentHash: header.parentBlockHash,
-    mixHash: "0x".padEnd(66, "0"),
-    nonce: "0x".padEnd(18, "0"),
-    sha3Uncles: "0x".padEnd(66, "0"),
+    number: blockNumber,
+    hash: blockHash,
+    parentHash: padString(header.parentBlockHash, 32),
+    mixHash: padString("0x", 32),
+    nonce: padString("0x", 8),
+    sha3Uncles: padString("0x", 32),
     logsBloom: bytesToHex(logsBloom.bitvector),
     transactionsRoot: bytesToHex(transactionRoot),
     stateRoot: header.newRoot,

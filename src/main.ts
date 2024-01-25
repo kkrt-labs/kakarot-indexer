@@ -1,3 +1,6 @@
+// Utils
+import { padString, toHexString } from "./utils/hex.ts";
+
 // Types
 import { toEthTx, toTypedEthTx } from "./types/transaction.ts";
 import { toEthHeader } from "./types/header.ts";
@@ -22,16 +25,14 @@ if (SINK_TYPE !== "console" && SINK_TYPE !== "mongo") {
   throw new Error("Invalid SINK_TYPE");
 }
 
-const sinkOptions =
-  SINK_TYPE === "mongo"
-    ? {
-        connectionString:
-          Deno.env.get("MONGO_CONNECTION_STRING") ??
-          "mongodb://mongo:mongo@mongo:27017",
-        database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
-        collectionNames: ["headers", "transactions", "receipts", "logs"],
-      }
-    : {};
+const sinkOptions = SINK_TYPE === "mongo"
+  ? {
+    connectionString: Deno.env.get("MONGO_CONNECTION_STRING") ??
+      "mongodb://mongo:mongo@mongo:27017",
+    database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
+    collectionNames: ["headers", "transactions", "receipts", "logs"],
+  }
+  : {};
 
 export const config = {
   streamUrl: STREAM_URL,
@@ -61,6 +62,8 @@ export default async function transform({
   // Accumulate the gas used in the block in order to calculate the cumulative gas used.
   // We increment it by the gas used in each transaction in the flatMap iteration.
   let cumulativeGasUsed = 0n;
+  const blockNumber = padString(toHexString(header.blockNumber), 32);
+  const blockHash = padString(header.blockHash, 32);
   const blockLogsBloom = new Bloom();
   const transactionTrie = new Trie();
   const receiptTrie = new Trie();
@@ -80,7 +83,12 @@ export default async function transform({
       if (typedEthTx === null) {
         return null;
       }
-      const ethTx = toEthTx({ transaction: typedEthTx, header, receipt });
+      const ethTx = toEthTx({
+        transaction: typedEthTx,
+        receipt,
+        blockNumber,
+        blockHash,
+      });
       // Can be null if:
       // 1. The typed transaction if missing a signature param (v, r, s).
       if (ethTx === null) {
@@ -92,7 +100,12 @@ export default async function transform({
       // 2. The event has an invalid number of keys.
       const ethLogs = receipt.events
         .map((e) => {
-          return toEthLog({ transaction: ethTx, event: e });
+          return toEthLog({
+            transaction: ethTx,
+            event: e,
+            blockNumber,
+            blockHash,
+          });
         })
         .filter((e) => e !== null) as JsonRpcLog[];
 
@@ -101,6 +114,8 @@ export default async function transform({
         logs: ethLogs,
         event,
         cumulativeGasUsed,
+        blockNumber,
+        blockHash,
       });
 
       // Trie code is based off:
@@ -140,6 +155,8 @@ export default async function transform({
     logsBloom: blockLogsBloom,
     receiptRoot: receiptTrie.root(),
     transactionRoot: transactionTrie.root(),
+    blockNumber,
+    blockHash,
   });
   store.push({
     collection: "headers",
