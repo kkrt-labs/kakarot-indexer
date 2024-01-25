@@ -10,14 +10,33 @@ import { BlockHeader, EventWithTransaction, hash } from "./deps.ts";
 import { Bloom, encodeReceipt, hexToBytes, RLP, Trie } from "./deps.ts";
 
 const AUTH_TOKEN = Deno.env.get("APIBARA_AUTH_TOKEN") ?? "";
-const TRANSACTION_EXECUTED = hash.getSelectorFromName(
-  "transaction_executed",
-);
+const TRANSACTION_EXECUTED = hash.getSelectorFromName("transaction_executed");
+
+const STREAM_URL = Deno.env.get("STREAM_URL") ?? "http://localhost:7171";
+const STARTING_BLOCK = Number(Deno.env.get("STARTING_BLOCK")) ?? 0;
+if (!Number.isSafeInteger(STARTING_BLOCK) || STARTING_BLOCK < 0) {
+  throw new Error("Invalid STARTING_BLOCK");
+}
+const SINK_TYPE = Deno.env.get("SINK_TYPE") ?? "console";
+if (SINK_TYPE !== "console" && SINK_TYPE !== "mongo") {
+  throw new Error("Invalid SINK_TYPE");
+}
+
+const sinkOptions =
+  SINK_TYPE === "mongo"
+    ? {
+        connectionString:
+          Deno.env.get("MONGO_CONNECTION_STRING") ??
+          "mongodb://mongo:mongo@mongo:27017",
+        database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
+        collectionNames: ["headers", "transactions", "receipts", "logs"],
+      }
+    : {};
 
 export const config = {
-  streamUrl: "https://goerli.starknet.a5a.ch",
+  streamUrl: STREAM_URL,
   authToken: AUTH_TOKEN,
-  startingBlock: 934_875,
+  startingBlock: STARTING_BLOCK,
   network: "starknet",
   filter: {
     header: { weak: true },
@@ -28,8 +47,8 @@ export const config = {
       },
     ],
   },
-  sinkType: "console",
-  sinkOptions: {},
+  sinkType: SINK_TYPE,
+  sinkOptions: sinkOptions,
 };
 
 export default async function transform({
@@ -71,9 +90,11 @@ export default async function transform({
       // Can be null if:
       // 1. The event is part of the defined ignored events (see IGNORED_KEYS).
       // 2. The event has an invalid number of keys.
-      const ethLogs = receipt.events.map((e) => {
-        return toEthLog({ transaction: ethTx, event: e });
-      }).filter((e) => e !== null) as JsonRpcLog[];
+      const ethLogs = receipt.events
+        .map((e) => {
+          return toEthLog({ transaction: ethTx, event: e });
+        })
+        .filter((e) => e !== null) as JsonRpcLog[];
 
       const ethReceipt = toEthReceipt({
         transaction: ethTx,
