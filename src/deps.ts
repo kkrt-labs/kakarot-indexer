@@ -33,7 +33,9 @@ export {
   generateAddress,
   hexToBytes,
   intToHex,
+  stripHexPrefix,
 } from "https://esm.sh/@ethereumjs/util@9.0.1";
+export type { PrefixedHexString } from "https://esm.sh/@ethereumjs/util@9.0.1";
 
 export { Bloom, encodeReceipt } from "https://esm.sh/@ethereumjs/vm@7.1.0";
 export type { TxReceipt } from "https://esm.sh/@ethereumjs/vm@7.1.0";

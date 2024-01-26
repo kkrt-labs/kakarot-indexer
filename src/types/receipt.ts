@@ -1,3 +1,6 @@
+// Utils
+import { padBytes } from "../utils/hex.ts";
+
 // Types
 import { fromJsonRpcLog, JsonRpcLog } from "./log.ts";
 
@@ -13,6 +16,7 @@ import {
   hexToBytes,
   JsonRpcTx,
   Log,
+  PrefixedHexString,
   TxReceipt,
 } from "../deps.ts";
 
@@ -20,14 +24,18 @@ import {
  * @param transaction - A Ethereum transaction.
  * @param logs - A array of Ethereum logs.
  * @param event - The "transaction_executed" event.
+ * @param blockNumber - The block number of the transaction in hex.
+ * @param blockHash - The block hash of the transaction in hex.
  * @param cumulativeGasUsed - The cumulative gas used up to this transaction.
  * @returns - The Ethereum receipt.
  */
 export function toEthReceipt(
-  { transaction, logs, event, cumulativeGasUsed }: {
+  { transaction, logs, event, blockNumber, blockHash, cumulativeGasUsed }: {
     transaction: JsonRpcTx;
     logs: JsonRpcLog[];
     event: Event;
+    blockNumber: PrefixedHexString;
+    blockHash: PrefixedHexString;
     cumulativeGasUsed: bigint;
   },
 ): JsonRpcReceipt {
@@ -39,17 +47,20 @@ export function toEthReceipt(
   const status = bigIntToHex(BigInt(event.data[event.data.length - 2]));
   // If there is no destination, calculate the deployed contract address.
   const contractAddress = transaction.to === null
-    ? bytesToHex(generateAddress(
-      hexToBytes(transaction.from),
-      hexToBytes(transaction.nonce),
-    ))
+    ? padBytes(
+      generateAddress(
+        hexToBytes(transaction.from),
+        hexToBytes(transaction.nonce),
+      ),
+      20,
+    )
     : null;
 
   return {
     transactionHash: transaction.hash,
     transactionIndex: transaction.transactionIndex,
-    blockHash: transaction.blockHash,
-    blockNumber: transaction.blockNumber,
+    blockHash,
+    blockNumber,
     from: transaction.from,
     to: transaction.to,
     cumulativeGasUsed: bigIntToHex(cumulativeGasUsed + gasUsed),

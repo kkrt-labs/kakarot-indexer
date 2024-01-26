@@ -1,16 +1,13 @@
+// Utils
+import { padBytes } from "../utils/hex.ts";
+
 // Starknet
-import {
-  BlockHeader,
-  Transaction,
-  TransactionReceipt,
-  uint256,
-} from "../deps.ts";
+import { Transaction, TransactionReceipt, uint256 } from "../deps.ts";
 
 // Eth
 import {
   AccessListEIP2930Transaction,
   bigIntToBytes,
-  bytesToHex,
   concatBytes,
   FeeMarketEIP1559Transaction,
   intToHex,
@@ -19,6 +16,7 @@ import {
   isLegacyTx,
   JsonRpcTx,
   LegacyTransaction,
+  PrefixedHexString,
   TransactionFactory,
   TypedTransaction,
   TypedTxData,
@@ -28,20 +26,21 @@ import {
  * @param transaction - Typed transaction to be converted.
  * @param header - The block header of the block containing the transaction.
  * @param receipt The transaction receipt of the transaction.
+ * @param blockNumber - The block number of the transaction in hex.
+ * @param blockHash - The block hash of the transaction in hex.
  * @returns - The transaction in the Ethereum format, or null if the transaction is invalid.
  * @throws - Error if any function throws a non-Error.
  *
  * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */
 export function toEthTx(
-  { transaction, header, receipt }: {
+  { transaction, receipt, blockNumber, blockHash }: {
     transaction: TypedTransaction;
-    header: BlockHeader;
     receipt: TransactionReceipt;
+    blockNumber: PrefixedHexString;
+    blockHash: PrefixedHexString;
   },
 ): JsonRpcTx | null {
-  const blockHash = header.blockHash;
-  const blockNumber = header.blockNumber;
   const index = receipt.transactionIndex;
 
   const txJSON = transaction.toJSON();
@@ -65,7 +64,7 @@ export function toEthTx(
     type: intToHex(transaction.type),
     accessList: txJSON.accessList,
     chainId: txJSON.chainId,
-    hash: bytesToHex(transaction.hash()),
+    hash: padBytes(transaction.hash(), 32),
     input: txJSON.data!,
     nonce: txJSON.nonce!,
     to: transaction.to?.toString() ?? null,

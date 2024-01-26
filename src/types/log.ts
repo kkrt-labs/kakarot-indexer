@@ -1,8 +1,17 @@
+// Utils
+import { padBigint } from "../utils/hex.ts";
+
 // Starknet
 import { Event, hash } from "../deps.ts";
 
 // Eth
-import { bigIntToHex, hexToBytes, JsonRpcTx, Log } from "../deps.ts";
+import {
+  bigIntToHex,
+  hexToBytes,
+  JsonRpcTx,
+  Log,
+  PrefixedHexString,
+} from "../deps.ts";
 
 // Events containing these keys are not
 // ETH logs and should be ignored.
@@ -17,12 +26,16 @@ const IGNORED_KEYS = [
 /**
  * @param transaction - A Ethereum transaction.
  * @param event - A Starknet event.
+ * @param blockNumber - The block number of the transaction in hex.
+ * @param blockHash - The block hash of the transaction in hex.
  * @returns - The log in the Ethereum format, or null if the log is invalid.
  */
 export function toEthLog(
-  { transaction, event }: {
+  { transaction, event, blockNumber, blockHash }: {
     transaction: JsonRpcTx;
     event: Event;
+    blockNumber: PrefixedHexString;
+    blockHash: PrefixedHexString;
   },
 ): JsonRpcLog | null {
   // Filter out ignored events which aren't ETH logs.
@@ -49,8 +62,11 @@ export function toEthLog(
   for (let i = 1; i < event.keys.length; i += 2) {
     // EVM Topics are u256, therefore are split into two felt keys, of at most
     // 128 bits (remember felt are 252 bits < 256 bits).
-    topics[Math.floor(i / 2)] = "0x" + ((BigInt(event.keys[i + 1]) << 128n) +
-      BigInt(event.keys[i])).toString(16).padStart(64, "0");
+    topics[Math.floor(i / 2)] = padBigint(
+      (BigInt(event.keys[i + 1]) << 128n) +
+        BigInt(event.keys[i]),
+      32,
+    );
   }
   const index = event.index ?? 0;
 
@@ -59,8 +75,8 @@ export function toEthLog(
     logIndex: index.toString(),
     transactionIndex: transaction.transactionIndex,
     transactionHash: transaction.hash,
-    blockHash: transaction.blockHash,
-    blockNumber: transaction.blockNumber,
+    blockHash,
+    blockNumber,
     address,
     data: `0x${data}`,
     topics,
