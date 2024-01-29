@@ -40,7 +40,7 @@ export const config = {
   startingBlock: STARTING_BLOCK,
   network: "starknet",
   filter: {
-    header: { weak: true },
+    header: { weak: false },
     // Filters are unions
     events: [
       {

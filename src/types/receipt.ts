@@ -74,6 +74,7 @@ export function toEthReceipt(
     logs,
     logsBloom: logsBloom(logs.map(fromJsonRpcLog)),
     status,
+    type: transaction.type,
   };
 }
 
@@ -126,6 +127,7 @@ export type JsonRpcReceipt = {
   logs: JsonRpcLog[]; // Array - Array of log objects, which this transaction generated.
   logsBloom: string; // DATA, 256 Bytes - Bloom filter for light clients to quickly retrieve related logs.
   // It also returns either:
+  type: string; // QUANTITY - integer of the transaction's type
   root?: string; // DATA, 32 bytes of post-transaction stateroot (pre Byzantium)
   status?: string; // QUANTITY, either 1 (success) or 0 (failure)
   blobGasUsed?: string; // QUANTITY, blob gas consumed by transaction (if blob transaction)
