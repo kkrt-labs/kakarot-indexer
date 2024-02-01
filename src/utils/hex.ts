@@ -41,14 +41,14 @@ export function padBigint(
  * the array is longer than the length, it is returned as is.
  */
 export function padBytes(
-  bytes: Uint8Array | undefined,
+  maybeBytes: Uint8Array | undefined,
   length: number,
 ): PrefixedHexString {
-  const bytesNew = bytes ?? new Uint8Array();
-  if (bytesNew.length > length) {
-    return bytesToHex(bytesNew);
+  const bytes = maybeBytes ?? new Uint8Array();
+  if (bytes.length > length) {
+    return bytesToHex(bytes);
   }
   const result = new Uint8Array(length);
-  result.set(bytesNew, length - bytesNew.length);
+  result.set(bytes, length - bytes.length);
   return bytesToHex(result);
 }
