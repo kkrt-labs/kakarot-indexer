@@ -20,8 +20,7 @@ export function padString(
   hex: PrefixedHexString | undefined,
   length: number,
 ): PrefixedHexString {
-  hex = hex ?? "0x";
-  return "0x" + (stripHexPrefix(hex).padStart(2 * length, "0"));
+  return "0x" + (stripHexPrefix(hex ?? "0x").padStart(2 * length, "0"));
 }
 
 /**
@@ -32,8 +31,8 @@ export function padBigint(
   b: bigint | undefined,
   length: number,
 ): PrefixedHexString {
-  b = b ?? 0n;
-  return "0x" + (stripHexPrefix(bigIntToHex(b)).padStart(2 * length, "0"));
+  return "0x" +
+    (stripHexPrefix(bigIntToHex(b ?? 0n)).padStart(2 * length, "0"));
 }
 
 /**
@@ -45,11 +44,11 @@ export function padBytes(
   bytes: Uint8Array | undefined,
   length: number,
 ): PrefixedHexString {
-  bytes = bytes ?? new Uint8Array();
-  if (bytes.length > length) {
-    return bytesToHex(bytes);
+  const bytesNew = bytes ?? new Uint8Array();
+  if (bytesNew.length > length) {
+    return bytesToHex(bytesNew);
   }
   const result = new Uint8Array(length);
-  result.set(bytes, length - bytes.length);
+  result.set(bytesNew, length - bytesNew.length);
   return bytesToHex(result);
 }
