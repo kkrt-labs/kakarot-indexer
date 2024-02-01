@@ -5,7 +5,10 @@ import { PrefixedHexString, stripHexPrefix } from "../deps.ts";
 /**
  * @param hex - A decimal string.
  */
-export function toHexString(decimal: string): PrefixedHexString {
+export function toHexString(decimal: string | undefined): PrefixedHexString {
+  if (decimal === undefined) {
+    return "0x";
+  }
   return bigIntToHex(BigInt(decimal));
 }
 
@@ -14,9 +17,10 @@ export function toHexString(decimal: string): PrefixedHexString {
  * @param length - The final length in bytes of the hex string.
  */
 export function padString(
-  hex: PrefixedHexString,
+  hex: PrefixedHexString | undefined,
   length: number,
 ): PrefixedHexString {
+  hex = hex ?? "0x";
   return "0x" + (stripHexPrefix(hex).padStart(2 * length, "0"));
 }
 
@@ -25,9 +29,10 @@ export function padString(
  * @param length - The final length in bytes of the hex string.
  */
 export function padBigint(
-  b: bigint,
+  b: bigint | undefined,
   length: number,
 ): PrefixedHexString {
+  b = b ?? 0n;
   return "0x" + (stripHexPrefix(bigIntToHex(b)).padStart(2 * length, "0"));
 }
 
@@ -37,9 +42,10 @@ export function padBigint(
  * the array is longer than the length, it is returned as is.
  */
 export function padBytes(
-  bytes: Uint8Array,
+  bytes: Uint8Array | undefined,
   length: number,
 ): PrefixedHexString {
+  bytes = bytes ?? new Uint8Array();
   if (bytes.length > length) {
     return bytesToHex(bytes);
   }
