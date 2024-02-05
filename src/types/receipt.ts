@@ -29,16 +29,21 @@ import {
  * @param cumulativeGasUsed - The cumulative gas used up to this transaction.
  * @returns - The Ethereum receipt.
  */
-export function toEthReceipt(
-  { transaction, logs, event, blockNumber, blockHash, cumulativeGasUsed }: {
-    transaction: JsonRpcTx;
-    logs: JsonRpcLog[];
-    event: Event;
-    blockNumber: PrefixedHexString;
-    blockHash: PrefixedHexString;
-    cumulativeGasUsed: bigint;
-  },
-): JsonRpcReceipt {
+export function toEthReceipt({
+  transaction,
+  logs,
+  event,
+  blockNumber,
+  blockHash,
+  cumulativeGasUsed,
+}: {
+  transaction: JsonRpcTx;
+  logs: JsonRpcLog[];
+  event: Event;
+  blockNumber: PrefixedHexString;
+  blockHash: PrefixedHexString;
+  cumulativeGasUsed: bigint;
+}): JsonRpcReceipt {
   // Gas used is the last piece of data in the transaction_executed event.
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
   const gasUsed = BigInt(event.data[event.data.length - 1]);
@@ -46,19 +51,20 @@ export function toEthReceipt(
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
   const status = bigIntToHex(BigInt(event.data[event.data.length - 2]));
   // If there is no destination, calculate the deployed contract address.
-  const contractAddress = transaction.to === null
-    ? padBytes(
-      generateAddress(
-        hexToBytes(transaction.from),
-        hexToBytes(transaction.nonce),
-      ),
-      20,
-    )
-    : null;
+  const contractAddress =
+    transaction.to === null
+      ? padBytes(
+          generateAddress(
+            hexToBytes(transaction.from),
+            hexToBytes(transaction.nonce),
+          ),
+          20,
+        )
+      : null;
 
   return {
     transactionHash: transaction.hash,
-    transactionIndex: transaction.transactionIndex,
+    transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
     blockHash,
     blockNumber,
     from: transaction.from,
