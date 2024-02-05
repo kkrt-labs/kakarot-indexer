@@ -78,7 +78,7 @@ export function toEthTx({
     input: txJSON.data!,
     nonce: txJSON.nonce!,
     to: transaction.to?.toString() ?? null,
-    transactionIndex: bigIntToHex(BigInt(index)),
+    transactionIndex: bigIntToHex(BigInt(index ?? 0)),
     value: txJSON.value!,
     v: txJSON.v,
     r: txJSON.r,
