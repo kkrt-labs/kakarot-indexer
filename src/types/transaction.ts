@@ -2,7 +2,12 @@
 import { padBytes } from "../utils/hex.ts";
 
 // Starknet
-import { Transaction, TransactionReceipt, uint256 } from "../deps.ts";
+import {
+  bigIntToHex,
+  Transaction,
+  TransactionReceipt,
+  uint256,
+} from "../deps.ts";
 
 // Eth
 import {
@@ -33,19 +38,24 @@ import {
  *
  * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */
-export function toEthTx(
-  { transaction, receipt, blockNumber, blockHash }: {
-    transaction: TypedTransaction;
-    receipt: TransactionReceipt;
-    blockNumber: PrefixedHexString;
-    blockHash: PrefixedHexString;
-  },
-): JsonRpcTx | null {
+export function toEthTx({
+  transaction,
+  receipt,
+  blockNumber,
+  blockHash,
+}: {
+  transaction: TypedTransaction;
+  receipt: TransactionReceipt;
+  blockNumber: PrefixedHexString;
+  blockHash: PrefixedHexString;
+}): JsonRpcTx | null {
   const index = receipt.transactionIndex;
 
   const txJSON = transaction.toJSON();
   if (
-    txJSON.r === undefined || txJSON.s === undefined || txJSON.v === undefined
+    txJSON.r === undefined ||
+    txJSON.s === undefined ||
+    txJSON.v === undefined
   ) {
     console.error(
       `Transaction is not signed: {r: ${txJSON.r}, s: ${txJSON.s}, v: ${txJSON.v}}`,
@@ -68,7 +78,7 @@ export function toEthTx(
     input: txJSON.data!,
     nonce: txJSON.nonce!,
     to: transaction.to?.toString() ?? null,
-    transactionIndex: index,
+    transactionIndex: bigIntToHex(BigInt(index)),
     value: txJSON.value!,
     v: txJSON.v,
     r: txJSON.r,
@@ -82,7 +92,9 @@ export function toEthTx(
  * @param transaction - A Kakarot transaction.
  * @returns - The Typed transaction in the Ethereum format
  */
-export function toTypedEthTx({ transaction }: {
+export function toTypedEthTx({
+  transaction,
+}: {
   transaction: Transaction;
 }): TypedTransaction | null {
   const calldata = transaction.invokeV1?.calldata;
@@ -104,9 +116,7 @@ export function toTypedEthTx({ transaction }: {
   // dataLength <- calldata[4]
   // calldataLen <- calldata[5]
   const bytes = concatBytes(
-    ...calldata
-      .slice(6)
-      .map((x) => bigIntToBytes(BigInt(x))),
+    ...calldata.slice(6).map((x) => bigIntToBytes(BigInt(x))),
   );
 
   const signature = transaction.meta.signature;
@@ -200,7 +210,5 @@ function addSignature(
     }
   })();
 
-  return TransactionFactory.fromTxData(
-    TypedTxData,
-  );
+  return TransactionFactory.fromTxData(TypedTxData);
 }

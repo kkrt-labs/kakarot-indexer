@@ -30,14 +30,17 @@ const IGNORED_KEYS = [
  * @param blockHash - The block hash of the transaction in hex.
  * @returns - The log in the Ethereum format, or null if the log is invalid.
  */
-export function toEthLog(
-  { transaction, event, blockNumber, blockHash }: {
-    transaction: JsonRpcTx;
-    event: Event;
-    blockNumber: PrefixedHexString;
-    blockHash: PrefixedHexString;
-  },
-): JsonRpcLog | null {
+export function toEthLog({
+  transaction,
+  event,
+  blockNumber,
+  blockHash,
+}: {
+  transaction: JsonRpcTx;
+  event: Event;
+  blockNumber: PrefixedHexString;
+  blockHash: PrefixedHexString;
+}): JsonRpcLog | null {
   // Filter out ignored events which aren't ETH logs.
   if (IGNORED_KEYS.includes(BigInt(event.keys[0]))) {
     return null;
@@ -56,15 +59,15 @@ export function toEthLog(
   // data field is FieldElement[] where each FieldElement represents a byte of data.
   // We convert it to a hex string and add leading zeros to make it a valid hex byte string.
   // Example: [1, 2, 3] -> "010203"
-  const data = event.data.map((d) => BigInt(d).toString(16).padStart(2, "0"))
+  const data = event.data
+    .map((d) => BigInt(d).toString(16).padStart(2, "0"))
     .join("");
   const topics: string[] = [];
   for (let i = 1; i < event.keys.length; i += 2) {
     // EVM Topics are u256, therefore are split into two felt keys, of at most
     // 128 bits (remember felt are 252 bits < 256 bits).
     topics[Math.floor(i / 2)] = padBigint(
-      (BigInt(event.keys[i + 1]) << 128n) +
-        BigInt(event.keys[i]),
+      (BigInt(event.keys[i + 1]) << 128n) + BigInt(event.keys[i]),
       32,
     );
   }
@@ -73,7 +76,7 @@ export function toEthLog(
   return {
     removed: false,
     logIndex: index.toString(),
-    transactionIndex: transaction.transactionIndex,
+    transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
     transactionHash: transaction.hash,
     blockHash,
     blockNumber,
