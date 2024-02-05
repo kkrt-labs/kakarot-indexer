@@ -162,5 +162,8 @@ export default async function transform({
     collection: "headers",
     data: { header: ethHeader },
   });
+
+  console.log(JSON.stringify(store, null, 2));
+
   return store;
 }
