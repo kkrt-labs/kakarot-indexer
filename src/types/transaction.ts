@@ -53,7 +53,7 @@ export function toEthTx({
 
   if (index === undefined) {
     console.error(
-      "⚠️ Transaction index is undefined - Transaction index will be set to 0.",
+      "Known bug (apibara): ⚠️ Transaction index is undefined - Transaction index will be set to 0.",
     );
   }
 
