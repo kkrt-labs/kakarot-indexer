@@ -55,27 +55,31 @@ const COINBASE = padString("0xabde1", 20);
  * Ethereum json RPC format for certain fields and is used as an
  * internal type.
  */
-export function toEthHeader(
-  {
-    header,
-    blockNumber,
-    blockHash,
-    gasUsed,
-    logsBloom,
-    receiptRoot,
-    transactionRoot,
-  }: {
-    header: BlockHeader;
-    blockNumber: PrefixedHexString;
-    blockHash: PrefixedHexString;
-    gasUsed: bigint;
-    logsBloom: Bloom;
-    receiptRoot: Uint8Array;
-    transactionRoot: Uint8Array;
-  },
-): JsonRpcBlock {
+export function toEthHeader({
+  header,
+  blockNumber,
+  blockHash,
+  gasUsed,
+  logsBloom,
+  receiptRoot,
+  transactionRoot,
+}: {
+  header: BlockHeader;
+  blockNumber: PrefixedHexString;
+  blockHash: PrefixedHexString;
+  gasUsed: bigint;
+  logsBloom: Bloom;
+  receiptRoot: Uint8Array;
+  transactionRoot: Uint8Array;
+}): JsonRpcBlock {
   const maybeTs = Date.parse(header.timestamp);
   const ts = isNaN(maybeTs) ? 0 : maybeTs;
+
+  if (header.timestamp === undefined || isNaN(maybeTs)) {
+    console.error(
+      `⚠️ Block timestamp is ${header.timestamp}, Date.parse of this is invalid - Block timestamp will be set to 0.`,
+    );
+  }
 
   return {
     number: blockNumber,
