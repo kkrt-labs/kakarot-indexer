@@ -51,6 +51,12 @@ export function toEthTx({
 }): JsonRpcTx | null {
   const index = receipt.transactionIndex;
 
+  if (index === undefined) {
+    console.error(
+      "⚠️ Transaction index is undefined - Transaction index will be set to 0.",
+    );
+  }
+
   const txJSON = transaction.toJSON();
   if (
     txJSON.r === undefined ||
