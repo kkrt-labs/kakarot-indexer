@@ -73,7 +73,7 @@ export function toEthHeader({
   transactionRoot: Uint8Array;
 }): JsonRpcBlock {
   const maybeTs = Date.parse(header.timestamp);
-  const ts = isNaN(maybeTs) ? 0 : maybeTs;
+  const ts = isNaN(maybeTs) ? 0 : Math.floor(maybeTs / 1000);
 
   if (header.timestamp === undefined || isNaN(maybeTs)) {
     console.error(
