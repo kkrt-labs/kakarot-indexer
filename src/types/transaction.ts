@@ -181,7 +181,7 @@ function fromSerializedData(
       throw new Error("Invalid serialized tx input: must be array");
     }
     const legacyTxValues = values as TxValuesArray[TransactionType.Legacy];
-    // In the case of a Legacy, we need to update the chain id to be a value > 37.
+    // In the case of a Legacy, we need to update the chain id to be a value >= 37.
     const chainId = bytesToBigInt(legacyTxValues[6]);
     values[6] = chainId > 37n ? values[6] : bigIntToBytes(37n);
     return LegacyTransaction.fromValuesArray(
