@@ -140,7 +140,6 @@ export function toTypedEthTx({
 
   try {
     const ethTxUnsigned = fromSerializedData(bytes);
-    console.log(ethTxUnsigned.v, ethTxUnsigned.r, ethTxUnsigned.s);
     return addSignature(ethTxUnsigned, r, s, v);
   } catch (e) {
     if (e instanceof Error) {
