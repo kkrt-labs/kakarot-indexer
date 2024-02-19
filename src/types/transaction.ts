@@ -134,8 +134,8 @@ export function toTypedEthTx({
     console.error(`Invalid signature length ${signature.length}`);
     return null;
   }
-  const r = uint256.uint256ToBN({ high: signature[1], low: signature[0] });
-  const s = uint256.uint256ToBN({ high: signature[3], low: signature[2] });
+  const r = uint256.uint256ToBN({ low: signature[0], high: signature[1] });
+  const s = uint256.uint256ToBN({ low: signature[2], high: signature[3] });
   const v = BigInt(signature[4]);
 
   try {
