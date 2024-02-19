@@ -13,6 +13,7 @@ import {
 import {
   AccessListEIP2930Transaction,
   bigIntToBytes,
+  bytesToBigInt,
   concatBytes,
   FeeMarketEIP1559Transaction,
   intToHex,
@@ -22,7 +23,10 @@ import {
   JsonRpcTx,
   LegacyTransaction,
   PrefixedHexString,
+  RLP,
   TransactionFactory,
+  TransactionType,
+  TxValuesArray,
   TypedTransaction,
   TypedTxData,
 } from "../deps.ts";
@@ -135,9 +139,8 @@ export function toTypedEthTx({
   const v = BigInt(signature[4]);
 
   try {
-    const ethTxUnsigned = TransactionFactory.fromSerializedData(bytes, {
-      freeze: false,
-    });
+    const ethTxUnsigned = fromSerializedData(bytes);
+    console.log(ethTxUnsigned.v, ethTxUnsigned.r, ethTxUnsigned.s);
     return addSignature(ethTxUnsigned, r, s, v);
   } catch (e) {
     if (e instanceof Error) {
@@ -148,6 +151,42 @@ export function toTypedEthTx({
     }
     // TODO: Ping alert webhooks
     return null;
+  }
+}
+
+/**
+ * @param bytes - The bytes of the rlp encoded transaction without signature.
+ * For Legacy = rlp([nonce, gasprice, startgas, to, value, data, chainid, 0, 0])
+ * For EIP1559 = [0x02 || rlp([chain_id, nonce, max_priority_fee_per_gas, max_fee_per_gas, gas_limit, destination, amount, data, access_list])]
+ * For EIP2930 = [0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])]
+ * @returns - Decoded unsigned transaction.
+ * @throws - Error if the transaction is a BlobEIP4844Tx or the rlp encoding is not an array.
+ */
+function fromSerializedData(
+  bytes: Uint8Array,
+): TypedTransaction {
+  const txType = bytes[0];
+  if (txType <= 0x7f) {
+    switch (txType) {
+      case TransactionType.AccessListEIP2930:
+        return AccessListEIP2930Transaction.fromSerializedTx(bytes);
+      case TransactionType.FeeMarketEIP1559:
+        return FeeMarketEIP1559Transaction.fromSerializedTx(bytes);
+      default:
+        throw new Error(`Invalid tx type: ${txType}`);
+    }
+  } else {
+    const values = RLP.decode(bytes);
+    if (!Array.isArray(values)) {
+      throw new Error("Invalid serialized tx input: must be array");
+    }
+    const legacyTxValues = values as TxValuesArray[TransactionType.Legacy];
+    // In the case of a Legacy, we need to update the chain id to be a value > 37.
+    const chainId = bytesToBigInt(legacyTxValues[6]);
+    values[6] = chainId > 37n ? values[6] : bigIntToBytes(37n);
+    return LegacyTransaction.fromValuesArray(
+      values as TxValuesArray[TransactionType.Legacy],
+    );
   }
 }
 
