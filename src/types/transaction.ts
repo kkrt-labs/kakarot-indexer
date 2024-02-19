@@ -13,7 +13,6 @@ import {
 import {
   AccessListEIP2930Transaction,
   bigIntToBytes,
-  bytesToBigInt,
   concatBytes,
   FeeMarketEIP1559Transaction,
   intToHex,
@@ -179,10 +178,11 @@ function fromSerializedData(
     if (!Array.isArray(values)) {
       throw new Error("Invalid serialized tx input: must be array");
     }
-    const legacyTxValues = values as TxValuesArray[TransactionType.Legacy];
     // In the case of a Legacy, we need to update the chain id to be a value >= 37.
-    const chainId = bytesToBigInt(legacyTxValues[6]);
-    values[6] = chainId > 37n ? values[6] : bigIntToBytes(37n);
+    // This is due to the fact that LegacyTransaction's constructor (used by fromValuesArray)
+    // will check if v >= 37. Since we pass it [v, r, s] = [chain_id, 0, 0], we need to force
+    // the chain id to be >= 37. This value will be updated during the call to addSignature.
+    values[6] = bigIntToBytes(37n);
     return LegacyTransaction.fromValuesArray(
       values as TxValuesArray[TransactionType.Legacy],
     );
