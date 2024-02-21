@@ -22,7 +22,10 @@ import {
   JsonRpcTx,
   LegacyTransaction,
   PrefixedHexString,
+  RLP,
   TransactionFactory,
+  TransactionType,
+  TxValuesArray,
   TypedTransaction,
   TypedTxData,
 } from "../deps.ts";
@@ -130,14 +133,12 @@ export function toTypedEthTx({
     console.error(`Invalid signature length ${signature.length}`);
     return null;
   }
-  const r = uint256.uint256ToBN({ high: signature[1], low: signature[0] });
-  const s = uint256.uint256ToBN({ high: signature[3], low: signature[2] });
+  const r = uint256.uint256ToBN({ low: signature[0], high: signature[1] });
+  const s = uint256.uint256ToBN({ low: signature[2], high: signature[3] });
   const v = BigInt(signature[4]);
 
   try {
-    const ethTxUnsigned = TransactionFactory.fromSerializedData(bytes, {
-      freeze: false,
-    });
+    const ethTxUnsigned = fromSerializedData(bytes);
     return addSignature(ethTxUnsigned, r, s, v);
   } catch (e) {
     if (e instanceof Error) {
@@ -148,6 +149,43 @@ export function toTypedEthTx({
     }
     // TODO: Ping alert webhooks
     return null;
+  }
+}
+
+/**
+ * @param bytes - The bytes of the rlp encoded transaction without signature.
+ * For Legacy = rlp([nonce, gasprice, startgas, to, value, data, chainid, 0, 0])
+ * For EIP1559 = [0x02 || rlp([chain_id, nonce, max_priority_fee_per_gas, max_fee_per_gas, gas_limit, destination, amount, data, access_list])]
+ * For EIP2930 = [0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])]
+ * @returns - Decoded unsigned transaction.
+ * @throws - Error if the transaction is a BlobEIP4844Tx or the rlp encoding is not an array.
+ */
+function fromSerializedData(
+  bytes: Uint8Array,
+): TypedTransaction {
+  const txType = bytes[0];
+  if (txType <= 0x7f) {
+    switch (txType) {
+      case TransactionType.AccessListEIP2930:
+        return AccessListEIP2930Transaction.fromSerializedTx(bytes);
+      case TransactionType.FeeMarketEIP1559:
+        return FeeMarketEIP1559Transaction.fromSerializedTx(bytes);
+      default:
+        throw new Error(`Invalid tx type: ${txType}`);
+    }
+  } else {
+    const values = RLP.decode(bytes);
+    if (!Array.isArray(values)) {
+      throw new Error("Invalid serialized tx input: must be array");
+    }
+    // In the case of a Legacy, we need to update the chain id to be a value >= 37.
+    // This is due to the fact that LegacyTransaction's constructor (used by fromValuesArray)
+    // will check if v >= 37. Since we pass it [v, r, s] = [chain_id, 0, 0], we need to force
+    // the chain id to be >= 37. This value will be updated during the call to addSignature.
+    values[6] = bigIntToBytes(37n);
+    return LegacyTransaction.fromValuesArray(
+      values as TxValuesArray[TransactionType.Legacy],
+    );
   }
 }
 
