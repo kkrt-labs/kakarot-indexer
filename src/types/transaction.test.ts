@@ -1,128 +1,44 @@
 import { assertExists } from "https://deno.land/std@0.213.0/assert/mod.ts";
-import { Transaction } from "../deps.ts";
+import {
+  AccessListEIP2930Transaction,
+  FeeMarketEIP1559Transaction,
+  LegacyTransaction,
+  RLP,
+  Transaction,
+} from "../deps.ts";
 import { toTypedEthTx } from "./transaction.ts";
+import { assertEquals } from "https://deno.land/std@0.213.0/assert/assert_equals.ts";
+import { Common } from "https://esm.sh/v135/@ethereumjs/common@4.1.0/denonext/common.mjs";
 
 Deno.test("toTypedEthTx Legacy Transaction", () => {
-  const bytes = [
-    "0x01",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0xf8",
-    "0x6a",
-    "0x80",
-    "0x85",
-    "0x06",
-    "0xfc",
-    "0x23",
-    "0xac",
-    "0x00",
-    "0x83",
-    "0x01",
-    "0x24",
-    "0xf8",
-    "0x94",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x03",
-    "0x15",
-    "0x80",
-    "0xb8",
-    "0x44",
-    "0xef",
-    "0x27",
-    "0x69",
-    "0xca",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x32",
-    "0xe7",
-    "0xe7",
-    "0x67",
-    "0xc3",
-    "0x50",
-    "0x77",
-    "0xf4",
-    "0x12",
-    "0xdf",
-    "0xd1",
-    "0xb7",
-    "0x7a",
-    "0xad",
-    "0xad",
-    "0x76",
-    "0x4c",
-    "0xc1",
-    "0x01",
-    "0x89",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x0d",
-    "0xe0",
-    "0xb6",
-    "0xb3",
-    "0xa7",
-    "0x64",
-    "0x00",
-    "0x00",
-    "0x07",
-    "0x80",
-    "0x80",
-  ] as `0x${string}`[];
-  const tx: Transaction = {
+  // Given
+  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+  const tx = new LegacyTransaction({
+    nonce: 1n,
+    gasPrice: 2n,
+    gasLimit: 3n,
+    to: "0x0000000000000000000000000000000000000001",
+    value: 4n,
+    data: new Uint8Array([0x12, 0x34]),
+  }, { common });
+  const raw = RLP.encode(tx.getMessageToSign());
+
+  const serializedTx: `0x${string}`[] = [];
+  raw.forEach((x) => serializedTx.push(`0x${x.toString(16)}`));
+  const starknetTxCalldata: `0x${string}`[] = [
+    "0x1",
+    "0x0",
+    "0x0",
+    "0x0",
+    "0x0",
+    "0x0",
+    ...serializedTx,
+  ];
+
+  const starknetTx: Transaction = {
     invokeV1: {
       senderAddress: "0x01",
-      calldata: bytes,
+      calldata: starknetTxCalldata,
     },
     meta: {
       hash: "0x01",
@@ -133,153 +49,139 @@ Deno.test("toTypedEthTx Legacy Transaction", () => {
     },
   };
 
-  const ethTx = toTypedEthTx({ transaction: tx });
+  // When
+  const ethTx = toTypedEthTx({ transaction: starknetTx }) as LegacyTransaction;
+
+  // Then
   assertExists(ethTx);
+  assertEquals(ethTx.nonce, 1n);
+  assertEquals(ethTx.gasPrice, 2n);
+  assertEquals(ethTx.gasLimit, 3n);
+  assertEquals(ethTx.value, 4n);
+  assertEquals(ethTx.type, 0);
+  assertEquals(ethTx.data, tx.data);
 });
 
 Deno.test("toTypedEthTx EIP1559 Transaction", () => {
-  const bytes = [
-    "0x01",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x02",
-    "0xef",
-    "0x07",
-    "0x01",
-    "0x84",
-    "0x3b",
-    "0x9a",
-    "0xca",
-    "0x00",
-    "0x84",
-    "0x3b",
-    "0x9a",
-    "0xca",
-    "0x00",
-    "0x82",
-    "0x52",
-    "0x08",
-    "0x94",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x84",
-    "0x3b",
-    "0x9a",
-    "0xca",
-    "0x00",
-    "0x84",
-    "0x37",
-    "0x13",
-    "0x03",
-    "0xc0",
-    "0xc0",
-  ] as `0x${string}`[];
-  const tx: Transaction = {
+  // Given
+  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+  const tx = new FeeMarketEIP1559Transaction({
+    nonce: 1n,
+    maxFeePerGas: 4n,
+    maxPriorityFeePerGas: 3n,
+    gasLimit: 4n,
+    to: "0x0000000000000000000000000000000000000001",
+    value: 5n,
+    data: new Uint8Array([0x12, 0x34]),
+    accessList: [{
+      address: "0x0000000000000000000000000000000000000002",
+      storageKeys: [
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+      ],
+    }],
+  }, { common });
+
+  const raw = tx.getMessageToSign();
+  const serializedTx: `0x${string}`[] = [];
+  raw.forEach((x) => serializedTx.push(`0x${x.toString(16)}`));
+  const starknetTxCalldata: `0x${string}`[] = [
+    "0x1",
+    "0x0",
+    "0x0",
+    "0x0",
+    "0x0",
+    "0x0",
+    ...serializedTx,
+  ];
+
+  const starknetTx: Transaction = {
     invokeV1: {
       senderAddress: "0x01",
-      calldata: bytes,
+      calldata: starknetTxCalldata,
     },
     meta: {
       hash: "0x01",
       maxFee: "0x01",
       nonce: "0x01",
-      signature: ["0x1", "0x2", "0x3", "0x4", "0x01"],
+      signature: ["0x1", "0x2", "0x3", "0x4", "0x1"],
       version: "1",
     },
   };
 
-  const ethTx = toTypedEthTx({ transaction: tx });
+  // When
+  const ethTx = toTypedEthTx({
+    transaction: starknetTx,
+  }) as FeeMarketEIP1559Transaction;
+
+  // Then
   assertExists(ethTx);
+  assertEquals(ethTx.nonce, 1n);
+  assertEquals(ethTx.maxFeePerGas, 4n);
+  assertEquals(ethTx.maxPriorityFeePerGas, 3n);
+  assertEquals(ethTx.gasLimit, 4n);
+  assertEquals(ethTx.value, 5n);
+  assertEquals(ethTx.type, 2);
+  assertEquals(ethTx.data, new Uint8Array([0x12, 0x34]));
 });
 
 Deno.test("toTypedEthTx EIP2930 Transaction", () => {
-  const bytes = [
-    "0x01",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x01",
-    "0xea",
-    "0x07",
-    "0x01",
-    "0x84",
-    "0x3b",
-    "0x9a",
-    "0xca",
-    "0x00",
-    "0x82",
-    "0x52",
-    "0x08",
-    "0x94",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x00",
-    "0x84",
-    "0x3b",
-    "0x9a",
-    "0xca",
-    "0x00",
-    "0x84",
-    "0x37",
-    "0x13",
-    "0x03",
-    "0xc0",
-    "0xc0",
-  ] as `0x${string}`[];
-  const tx: Transaction = {
+  // Given
+  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+  const tx = new AccessListEIP2930Transaction({
+    nonce: 1n,
+    gasPrice: 2n,
+    gasLimit: 3n,
+    to: "0x0000000000000000000000000000000000000001",
+    value: 4n,
+    data: new Uint8Array([0x12, 0x34]),
+    accessList: [{
+      address: "0x0000000000000000000000000000000000000002",
+      storageKeys: [
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+      ],
+    }],
+  }, { common });
+
+  const raw = tx.getMessageToSign();
+  const serializedTx: `0x${string}`[] = [];
+  raw.forEach((x) => serializedTx.push(`0x${x.toString(16)}`));
+  const starknetTxCalldata: `0x${string}`[] = [
+    "0x1",
+    "0x0",
+    "0x0",
+    "0x0",
+    "0x0",
+    "0x0",
+    ...serializedTx,
+  ];
+
+  const starknetTx: Transaction = {
     invokeV1: {
       senderAddress: "0x01",
-      calldata: bytes,
+      calldata: starknetTxCalldata,
     },
     meta: {
       hash: "0x01",
       maxFee: "0x01",
       nonce: "0x01",
-      signature: ["0x1", "0x2", "0x3", "0x4", "0x01"],
+      signature: ["0x1", "0x2", "0x3", "0x4", "0x1"],
       version: "1",
     },
   };
 
-  const ethTx = toTypedEthTx({ transaction: tx });
+  // When
+  const ethTx = toTypedEthTx({
+    transaction: starknetTx,
+  }) as AccessListEIP2930Transaction;
+
+  // Then
+  // Then
   assertExists(ethTx);
+  assertEquals(ethTx.nonce, 1n);
+  assertEquals(ethTx.gasPrice, 2n);
+  assertEquals(ethTx.gasLimit, 3n);
+  assertEquals(ethTx.value, 4n);
+  assertEquals(ethTx.type, 1);
+  assertEquals(ethTx.data, tx.data);
+  assertEquals(ethTx.accessList, tx.accessList);
 });
