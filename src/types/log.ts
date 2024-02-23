@@ -41,33 +41,36 @@ export function toEthLog({
   blockNumber: PrefixedHexString;
   blockHash: PrefixedHexString;
 }): JsonRpcLog | null {
-  // Filter out ignored events which aren't ETH logs.
-  if (IGNORED_KEYS.includes(BigInt(event.keys[0]))) {
-    return null;
-  }
+  const keys = event.keys ?? [];
 
   // The event must have at least one key (since the first key is the address)
   // and an odd number of keys (since each topic is split into two keys).
   // <https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/evm.cairo#L169>
-  if (event.keys.length < 1 || event.keys.length % 2 !== 1) {
+  if (keys.length < 1 || keys.length % 2 !== 1) {
     console.error(`Invalid event ${event}`);
     return null;
   }
 
+  // Filter out ignored events which aren't ETH logs.
+  if (IGNORED_KEYS.includes(BigInt(keys[0]))) {
+    return null;
+  }
+
   // The address is the first key of the event.
-  const address = bigIntToHex(BigInt(event.keys[0]));
+  const address = padBigint(BigInt(keys[0]), 20);
   // data field is FieldElement[] where each FieldElement represents a byte of data.
   // We convert it to a hex string and add leading zeros to make it a valid hex byte string.
   // Example: [1, 2, 3] -> "010203"
-  const data = event.data
+  const data = event.data ?? [];
+  const paddedData = data
     .map((d) => BigInt(d).toString(16).padStart(2, "0"))
     .join("");
   const topics: string[] = [];
-  for (let i = 1; i < event.keys.length; i += 2) {
+  for (let i = 1; i < keys.length; i += 2) {
     // EVM Topics are u256, therefore are split into two felt keys, of at most
     // 128 bits (remember felt are 252 bits < 256 bits).
     topics[Math.floor(i / 2)] = padBigint(
-      (BigInt(event.keys[i + 1]) << 128n) + BigInt(event.keys[i]),
+      (BigInt(keys[i + 1]) << 128n) + BigInt(keys[i]),
       32,
     );
   }
@@ -81,7 +84,7 @@ export function toEthLog({
     blockHash,
     blockNumber,
     address,
-    data: `0x${data}`,
+    data: `0x${paddedData}`,
     topics,
   };
 }
