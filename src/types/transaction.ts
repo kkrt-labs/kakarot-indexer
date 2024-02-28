@@ -109,12 +109,14 @@ export function toTypedEthTx({
   const calldata = transaction.invokeV1?.calldata;
   if (!calldata) {
     console.error("No calldata");
+    console.error(JSON.stringify(transaction, null, 2));
     return null;
   }
   const callArrayLen = BigInt(calldata[0]);
   // Multi-calls are not supported for now.
   if (callArrayLen !== 1n) {
     console.error(`Invalid call array length ${callArrayLen}`);
+    console.error(JSON.stringify(transaction, null, 2));
     return null;
   }
 
@@ -131,6 +133,7 @@ export function toTypedEthTx({
   const signature = transaction.meta.signature;
   if (signature.length !== 5) {
     console.error(`Invalid signature length ${signature.length}`);
+    console.error(JSON.stringify(transaction, null, 2));
     return null;
   }
   const r = uint256.uint256ToBN({ low: signature[0], high: signature[1] });
@@ -160,9 +163,7 @@ export function toTypedEthTx({
  * @returns - Decoded unsigned transaction.
  * @throws - Error if the transaction is a BlobEIP4844Tx or the rlp encoding is not an array.
  */
-function fromSerializedData(
-  bytes: Uint8Array,
-): TypedTransaction {
+function fromSerializedData(bytes: Uint8Array): TypedTransaction {
   const txType = bytes[0];
   if (txType <= 0x7f) {
     switch (txType) {
