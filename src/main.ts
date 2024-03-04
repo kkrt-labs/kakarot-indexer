@@ -39,6 +39,7 @@ export const config = {
   authToken: AUTH_TOKEN,
   startingBlock: STARTING_BLOCK,
   network: "starknet",
+  finality: "DATA_STATUS_PENDING",
   filter: {
     header: { weak: false },
     // Filters are unions
