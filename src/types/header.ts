@@ -88,10 +88,11 @@ export function toEthHeader({
     mixHash: padString("0x", 32),
     nonce: padString("0x", 8),
     // Empty list of uncles -> RLP encoded to 0xC0 -> Keccak(0xc0) == 0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347
-    sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+    sha3Uncles:
+      "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
     logsBloom: bytesToHex(logsBloom.bitvector),
     transactionsRoot: bytesToHex(transactionRoot),
-    stateRoot: header.newRoot,
+    stateRoot: header.newRoot ?? padString("0x", 32),
     receiptsRoot: bytesToHex(receiptRoot),
     miner: COINBASE,
     difficulty: "0x00",
