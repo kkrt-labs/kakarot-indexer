@@ -2,17 +2,14 @@
 import { padBytes } from "../utils/hex.ts";
 
 // Starknet
-import {
-  bigIntToHex,
-  Transaction,
-  TransactionReceipt,
-  uint256,
-} from "../deps.ts";
+import { Transaction, TransactionReceipt, uint256 } from "../deps.ts";
 
 // Eth
 import {
   AccessListEIP2930Transaction,
   bigIntToBytes,
+  bigIntToHex,
+  Capability,
   concatBytes,
   FeeMarketEIP1559Transaction,
   intToHex,
@@ -72,6 +69,13 @@ export function toEthTx({
     // TODO: Ping alert webhooks
     return null;
   }
+  // If the transaction is a legacy, we can calculate it from the v value.
+  // v = 35 + 2 * chainId + yParity -> chainId = (v - 35) / 2
+  const chainId = isLegacyTx(transaction) &&
+      transaction.supports(Capability.EIP155ReplayProtection)
+    ? bigIntToHex((BigInt(txJSON.v) - 35n) / 2n)
+    : txJSON.chainId;
+
   const result: JsonRpcTx & { yParity?: string } = {
     blockHash,
     blockNumber,
@@ -82,7 +86,7 @@ export function toEthTx({
     maxPriorityFeePerGas: txJSON.maxPriorityFeePerGas,
     type: intToHex(transaction.type),
     accessList: txJSON.accessList,
-    chainId: txJSON.chainId,
+    chainId,
     hash: padBytes(transaction.hash(), 32),
     input: txJSON.data!,
     nonce: txJSON.nonce!,
