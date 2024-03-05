@@ -104,6 +104,11 @@ export function toEthHeader({
     timestamp: bigIntToHex(BigInt(ts)),
     transactions: [], // we are using this structure to represent a Kakarot block header, so we don't need to include transactions
     uncles: [],
+    withdrawals: [],
+    // Root hash of an empty trie.
+    // <https://github.com/paradigmxyz/reth/blob/main/crates/primitives/src/constants/mod.rs#L138>
+    withdrawalsRoot:
+      "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
     baseFeePerGas: bigIntToHex(BASE_FEE_PER_GAS), // TBD
   };
 }
