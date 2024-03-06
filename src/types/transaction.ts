@@ -101,11 +101,7 @@ export function toEthTx({
     isFeeMarketEIP1559TxData(transaction) ||
     isAccessListEIP2930Tx(transaction)
   ) {
-    if (transaction.v === undefined) {
-      console.error(`Transaction is not signed: {v: ${transaction.v}}`);
-      return null;
-    }
-    result.yParity = `0x${transaction.v.toString(16)}`;
+    result.yParity = txJSON.v;
   }
   return result;
 }
