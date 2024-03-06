@@ -11,6 +11,7 @@ export type {
 // Ethereum
 export {
   AccessListEIP2930Transaction,
+  Capability,
   FeeMarketEIP1559Transaction,
   isAccessListEIP2930Tx,
   isFeeMarketEIP1559TxData,
