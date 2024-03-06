@@ -51,7 +51,7 @@ export function toEthTx({
   receipt: TransactionReceipt;
   blockNumber: PrefixedHexString;
   blockHash: PrefixedHexString;
-}): JsonRpcTx | null {
+}): (JsonRpcTx & { yParity?: string }) | null {
   const index = receipt.transactionIndex;
 
   if (index === undefined) {
@@ -72,7 +72,7 @@ export function toEthTx({
     // TODO: Ping alert webhooks
     return null;
   }
-  return {
+  const result: JsonRpcTx & { yParity?: string } = {
     blockHash,
     blockNumber,
     from: transaction.getSenderAddress().toString(),
@@ -95,6 +95,15 @@ export function toEthTx({
     maxFeePerBlobGas: txJSON.maxFeePerBlobGas,
     blobVersionedHashes: txJSON.blobVersionedHashes,
   };
+  // Adding yParity for EIP-1559 and EIP-2930 transactions
+  // To fit the Ethereum format, we need to add the yParity field.
+  if (
+    isFeeMarketEIP1559TxData(transaction) ||
+    isAccessListEIP2930Tx(transaction)
+  ) {
+    result.yParity = txJSON.v;
+  }
+  return result;
 }
 
 /**
