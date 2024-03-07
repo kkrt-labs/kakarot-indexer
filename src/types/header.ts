@@ -12,33 +12,7 @@ import {
   JsonRpcBlock,
   PrefixedHexString,
 } from "../deps.ts";
-
-/**
- * The gas limit of a Kakarot Ethereum block.
- * The gas limit for now is arbitrarily set to 30,000,000
- * and should be adjusted in the future based on the
- * first Kakarot testnet.
- * @todo Update this value after the first Kakarot testnet.
- */
-const BLOCK_GAS_LIMIT = 30_000_000n;
-
-/**
- * The base fee per gas of a Kakarot Ethereum block.
- * Since Kakarot does not have a fee market, the base fee
- * per gas should currently be the Starknet gas price.
- * Since this field is not present in the Starknet
- * block header, we arbitrarily set it to 100 Gwei.
- * @todo Update this value after the first Kakarot testnet.
- */
-const BASE_FEE_PER_GAS = 100_000_000_000n;
-
-/**
- * The Kakarot Ethereum coinbase. Needs to be updated with
- * the actual Kakarot corresponding Sequencer Ethereum
- * address.
- * @todo Update this value BEFORE the first Kakarot testnet.
- */
-const COINBASE = padString("0xabde1", 20);
+import { KAKAROT } from "../provider.ts";
 
 /**
  * @param header - A Starknet block header.
@@ -55,7 +29,7 @@ const COINBASE = padString("0xabde1", 20);
  * Ethereum json RPC format for certain fields and is used as an
  * internal type.
  */
-export function toEthHeader({
+export async function toEthHeader({
   header,
   blockNumber,
   blockHash,
@@ -71,7 +45,7 @@ export function toEthHeader({
   logsBloom: Bloom;
   receiptRoot: Uint8Array;
   transactionRoot: Uint8Array;
-}): JsonRpcBlock {
+}): Promise<JsonRpcBlock> {
   const maybeTs = Date.parse(header.timestamp);
   const ts = isNaN(maybeTs) ? 0 : Math.floor(maybeTs / 1000);
 
@@ -80,6 +54,26 @@ export function toEthHeader({
       `⚠️ Block timestamp is ${header.timestamp}, Date.parse of this is invalid - Block timestamp will be set to 0.`,
     );
   }
+
+  const { coinbase } = (await KAKAROT.call("get_coinbase", [], {
+    blockIdentifier: blockNumber,
+  })) as {
+    coinbase: bigint;
+  };
+  const { base_fee: baseFee } = (await KAKAROT.call("get_base_fee", [], {
+    blockIdentifier: blockNumber,
+  })) as {
+    base_fee: bigint;
+  };
+  const { block_gas_limit: blockGasLimit } = (await KAKAROT.call(
+    "get_block_gas_limit",
+    [],
+    {
+      blockIdentifier: blockNumber,
+    },
+  )) as {
+    block_gas_limit: bigint;
+  };
 
   return {
     number: blockNumber,
@@ -94,12 +88,12 @@ export function toEthHeader({
     transactionsRoot: bytesToHex(transactionRoot),
     stateRoot: header.newRoot ?? padString("0x", 32),
     receiptsRoot: bytesToHex(receiptRoot),
-    miner: COINBASE,
+    miner: bigIntToHex(coinbase),
     difficulty: "0x00",
     totalDifficulty: "0x00",
     extraData: "0x",
     size: "0x00",
-    gasLimit: bigIntToHex(BLOCK_GAS_LIMIT),
+    gasLimit: bigIntToHex(blockGasLimit),
     gasUsed: bigIntToHex(gasUsed),
     timestamp: bigIntToHex(BigInt(ts)),
     transactions: [], // we are using this structure to represent a Kakarot block header, so we don't need to include transactions
@@ -109,6 +103,6 @@ export function toEthHeader({
     // <https://github.com/paradigmxyz/reth/blob/main/crates/primitives/src/constants/mod.rs#L138>
     withdrawalsRoot:
       "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-    baseFeePerGas: bigIntToHex(BASE_FEE_PER_GAS), // TBD
+    baseFeePerGas: bigIntToHex(baseFee),
   };
 }
