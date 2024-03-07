@@ -1,8 +1,8 @@
 import { Contract, RpcProvider } from "./deps.ts";
 
-const RPC_URL = Deno.env.get("STARKNET_RPC_URL");
+const RPC_URL = Deno.env.get("STARKNET_NETWORK");
 if (RPC_URL === undefined) {
-  throw new Error("ENV: STARKNET_RPC_URL is not set");
+  throw new Error("ENV: STARKNET_NETWORK is not set");
 }
 
 const KAKAROT_ADDRESS = Deno.env.get("KAKAROT_ADDRESS");
