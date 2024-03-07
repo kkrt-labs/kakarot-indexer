@@ -56,12 +56,14 @@ export async function toEthHeader({
   }
 
   const { coinbase } = (await KAKAROT.call("get_coinbase", [], {
-    blockIdentifier: blockNumber,
+    // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
+    blockIdentifier: BigInt(blockNumber).toString(),
   })) as {
     coinbase: bigint;
   };
   const { base_fee: baseFee } = (await KAKAROT.call("get_base_fee", [], {
-    blockIdentifier: blockNumber,
+    // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
+    blockIdentifier: BigInt(blockNumber).toString(),
   })) as {
     base_fee: bigint;
   };
@@ -69,7 +71,8 @@ export async function toEthHeader({
     "get_block_gas_limit",
     [],
     {
-      blockIdentifier: blockNumber,
+      // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
+      blockIdentifier: BigInt(blockNumber).toString(),
     },
   )) as {
     block_gas_limit: bigint;
