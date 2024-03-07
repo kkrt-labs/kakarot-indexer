@@ -1,5 +1,5 @@
 // Utils
-import { padBytes } from "../utils/hex.ts";
+import { padBigint, padBytes } from "../utils/hex.ts";
 
 // Starknet
 import { Transaction, TransactionReceipt, uint256 } from "../deps.ts";
@@ -91,7 +91,7 @@ export function toEthTx({
     input: txJSON.data!,
     nonce: txJSON.nonce!,
     to: transaction.to?.toString() ?? null,
-    transactionIndex: bigIntToHex(BigInt(index ?? 0)),
+    transactionIndex: padBigint(BigInt(index ?? 0), 32),
     value: txJSON.value!,
     v: txJSON.v,
     r: txJSON.r,
