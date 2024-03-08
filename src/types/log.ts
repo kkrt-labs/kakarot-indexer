@@ -74,11 +74,10 @@ export function toEthLog({
       32,
     );
   }
-  const index = event.index ?? 0;
 
   return {
     removed: false,
-    logIndex: index.toString(),
+    logIndex: null,
     transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
     transactionHash: transaction.hash,
     blockHash,

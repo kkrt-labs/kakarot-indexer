@@ -109,10 +109,14 @@ export default async function transform({
           });
         })
         .filter((e) => e !== null) as JsonRpcLog[];
+      const ethLogsIndexed = ethLogs.map((log, index) => {
+        log.logIndex = index.toString();
+        return log;
+      });
 
       const ethReceipt = toEthReceipt({
         transaction: ethTx,
-        logs: ethLogs,
+        logs: ethLogsIndexed,
         event,
         cumulativeGasUsed,
         blockNumber,
