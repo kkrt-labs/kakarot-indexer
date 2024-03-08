@@ -96,7 +96,7 @@ export async function toEthHeader({
     totalDifficulty: "0x00",
     extraData: "0x",
     size: "0x00",
-    gasLimit: bigIntToHex(blockGasLimit),
+    gasLimit: padString(bigIntToHex(blockGasLimit), 32),
     gasUsed: bigIntToHex(gasUsed),
     timestamp: bigIntToHex(BigInt(ts)),
     transactions: [], // we are using this structure to represent a Kakarot block header, so we don't need to include transactions
