@@ -91,7 +91,7 @@ export async function toEthHeader({
     transactionsRoot: bytesToHex(transactionRoot),
     stateRoot: header.newRoot ?? padString("0x", 32),
     receiptsRoot: bytesToHex(receiptRoot),
-    miner: bigIntToHex(coinbase),
+    miner: padString(bigIntToHex(coinbase), 20),
     difficulty: "0x00",
     totalDifficulty: "0x00",
     extraData: "0x",
@@ -106,6 +106,6 @@ export async function toEthHeader({
     // <https://github.com/paradigmxyz/reth/blob/main/crates/primitives/src/constants/mod.rs#L138>
     withdrawalsRoot:
       "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-    baseFeePerGas: bigIntToHex(baseFee),
+    baseFeePerGas: padString(bigIntToHex(baseFee), 32),
   };
 }
