@@ -14,11 +14,6 @@ export const PROVIDER = new RpcProvider({
   nodeUrl: RPC_URL,
 });
 
-// const { abi } = await PROVIDER.getClassAt(BigInt(KAKAROT_ADDRESS));
-// if (abi === undefined) {
-//   throw new Error("Provider Error: Cannot get ABI of Kakarot contract");
-// }
-
 const abi = [
   {
     members: [
