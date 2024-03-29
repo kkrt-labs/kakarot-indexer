@@ -55,28 +55,58 @@ export async function toEthHeader({
     );
   }
 
-  const { coinbase } = (await KAKAROT.call("get_coinbase", [], {
-    // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
-    blockIdentifier: BigInt(blockNumber).toString(),
-  })) as {
-    coinbase: bigint;
-  };
-  const { base_fee: baseFee } = (await KAKAROT.call("get_base_fee", [], {
-    // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
-    blockIdentifier: BigInt(blockNumber).toString(),
-  })) as {
-    base_fee: bigint;
-  };
-  const { block_gas_limit: blockGasLimit } = (await KAKAROT.call(
-    "get_block_gas_limit",
-    [],
-    {
+  let coinbase;
+  let baseFee;
+  let blockGasLimit;
+
+  try {
+    const response = (await KAKAROT.call("get_coinbase", [], {
       // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
       blockIdentifier: BigInt(blockNumber).toString(),
-    },
-  )) as {
-    block_gas_limit: bigint;
-  };
+    })) as {
+      coinbase: bigint;
+    };
+    coinbase = response.coinbase;
+  } catch (error) {
+    console.warn(
+      `⚠️ Failed to get coinbase for block ${blockNumber} - Error: ${error.message}`,
+    );
+    coinbase = BigInt(0);
+  }
+
+  try {
+    const response = (await KAKAROT.call("get_base_fee", [], {
+      // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
+      blockIdentifier: BigInt(blockNumber).toString(),
+    })) as {
+      base_fee: bigint;
+    };
+    baseFee = response.base_fee;
+  } catch (error) {
+    console.warn(
+      `⚠️ Failed to get base fee for block ${blockNumber} - Error: ${error.message}`,
+    );
+    baseFee = BigInt(0);
+  }
+
+  try {
+    const response = (await KAKAROT.call(
+      "get_block_gas_limit",
+      [],
+      {
+        // ⚠️ StarknetJS: blockIdentifier is a block hash if value is BigInt or HexString, otherwise it's a block number.
+        blockIdentifier: BigInt(blockNumber).toString(),
+      },
+    )) as {
+      block_gas_limit: bigint;
+    };
+    blockGasLimit = response.block_gas_limit;
+  } catch (error) {
+    console.warn(
+      `⚠️ Failed to get block gas limit for block ${blockNumber} - Error: ${error.message}`,
+    );
+    blockGasLimit = BigInt(0);
+  }
 
   return {
     number: blockNumber,
