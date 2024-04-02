@@ -35,16 +35,14 @@ if (KAKAROT_ADDRESS === undefined) {
   throw new Error("ENV: KAKAROT_ADDRESS is not set");
 }
 
-const sinkOptions =
-  SINK_TYPE === "mongo"
-    ? {
-        connectionString:
-          Deno.env.get("MONGO_CONNECTION_STRING") ??
-          "mongodb://mongo:mongo@mongo:27017",
-        database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
-        collectionNames: ["headers", "transactions", "receipts", "logs"],
-      }
-    : {};
+const sinkOptions = SINK_TYPE === "mongo"
+  ? {
+    connectionString: Deno.env.get("MONGO_CONNECTION_STRING") ??
+      "mongodb://mongo:mongo@mongo:27017",
+    database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
+    collectionNames: ["headers", "transactions", "receipts", "logs"],
+  }
+  : {};
 
 export const config = {
   streamUrl: STREAM_URL,
@@ -95,6 +93,8 @@ const isKakarotTransaction = (transaction: Transaction) => {
   return true;
 };
 
+const NULL_BLOCK_HASH = padString("0x", 32);
+
 export default async function transform({
   header,
   events,
@@ -106,6 +106,7 @@ export default async function transform({
   // We increment it by the gas used in each transaction in the flatMap iteration.
   let cumulativeGasUsed = 0n;
   const blockNumber = padString(toHexString(header.blockNumber), 8);
+  const isPendingBlock = padString(header.blockHash, 32) === NULL_BLOCK_HASH;
   const blockHash = padString(header.blockHash, 32);
   const blockLogsBloom = new Bloom();
   const transactionTrie = new Trie();
@@ -137,6 +138,7 @@ export default async function transform({
         receipt,
         blockNumber,
         blockHash,
+        isPendingBlock,
       });
       // Can be null if:
       // 1. The typed transaction if missing a signature param (v, r, s).
@@ -154,13 +156,16 @@ export default async function transform({
             event: e,
             blockNumber,
             blockHash,
+            isPendingBlock,
           });
         })
         .filter((e) => e !== null) as JsonRpcLog[];
-      const ethLogsIndexed = ethLogs.map((log, index) => {
-        log.logIndex = index.toString();
-        return log;
-      });
+      const ethLogsIndexed = isPendingBlock
+        ? ethLogs
+        : ethLogs.map((log, index) => {
+          log.logIndex = index.toString();
+          return log;
+        });
 
       const ethReceipt = toEthReceipt({
         transaction: ethTx,
@@ -169,6 +174,7 @@ export default async function transform({
         cumulativeGasUsed,
         blockNumber,
         blockHash,
+        isPendingBlock,
       });
 
       // Trie code is based off:
@@ -210,6 +216,7 @@ export default async function transform({
     transactionRoot: transactionTrie.root(),
     blockNumber,
     blockHash,
+    isPendingBlock,
   });
   store.push({
     collection: "headers",

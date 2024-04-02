@@ -33,8 +33,8 @@ import {
  * @param receipt The transaction receipt of the transaction.
  * @param blockNumber - The block number of the transaction in hex.
  * @param blockHash - The block hash of the transaction in hex.
+ * @param isPendingBlock - Whether the block is pending.
  * @returns - The transaction in the Ethereum format, or null if the transaction is invalid.
- * @throws - Error if any function throws a non-Error.
  *
  * Acknowledgement: Code taken from <https://github.com/ethereumjs/ethereumjs-monorepo>
  */
@@ -43,11 +43,13 @@ export function toEthTx({
   receipt,
   blockNumber,
   blockHash,
+  isPendingBlock,
 }: {
   transaction: TypedTransaction;
   receipt: TransactionReceipt;
   blockNumber: PrefixedHexString;
   blockHash: PrefixedHexString;
+  isPendingBlock: boolean;
 }): (JsonRpcTx & { yParity?: string }) | null {
   const index = receipt.transactionIndex;
 
@@ -77,7 +79,7 @@ export function toEthTx({
     : txJSON.chainId;
 
   const result: JsonRpcTx & { yParity?: string } = {
-    blockHash,
+    blockHash: isPendingBlock ? null : blockHash,
     blockNumber,
     from: transaction.getSenderAddress().toString(),
     gas: txJSON.gasLimit!,
@@ -91,7 +93,7 @@ export function toEthTx({
     input: txJSON.data!,
     nonce: txJSON.nonce!,
     to: transaction.to?.toString() ?? null,
-    transactionIndex: padBigint(BigInt(index ?? 0), 32),
+    transactionIndex: isPendingBlock ? null : padBigint(BigInt(index ?? 0), 32),
     value: txJSON.value!,
     v: txJSON.v,
     r: txJSON.r,

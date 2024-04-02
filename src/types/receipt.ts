@@ -27,6 +27,7 @@ import {
  * @param blockNumber - The block number of the transaction in hex.
  * @param blockHash - The block hash of the transaction in hex.
  * @param cumulativeGasUsed - The cumulative gas used up to this transaction.
+ * @param isPendingBlock - Whether the block is pending.
  * @returns - The Ethereum receipt.
  */
 export function toEthReceipt({
@@ -36,6 +37,7 @@ export function toEthReceipt({
   blockNumber,
   blockHash,
   cumulativeGasUsed,
+  isPendingBlock,
 }: {
   transaction: JsonRpcTx;
   logs: JsonRpcLog[];
@@ -43,6 +45,7 @@ export function toEthReceipt({
   blockNumber: PrefixedHexString;
   blockHash: PrefixedHexString;
   cumulativeGasUsed: bigint;
+  isPendingBlock?: boolean;
 }): JsonRpcReceipt {
   // Gas used is the last piece of data in the transaction_executed event.
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
@@ -51,21 +54,22 @@ export function toEthReceipt({
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
   const status = bigIntToHex(BigInt(event.data[event.data.length - 2]));
   // If there is no destination, calculate the deployed contract address.
-  const contractAddress =
-    transaction.to === null
-      ? padBytes(
-          generateAddress(
-            hexToBytes(transaction.from),
-            hexToBytes(transaction.nonce),
-          ),
-          20,
-        )
-      : null;
+  const contractAddress = transaction.to === null
+    ? padBytes(
+      generateAddress(
+        hexToBytes(transaction.from),
+        hexToBytes(transaction.nonce),
+      ),
+      20,
+    )
+    : null;
 
   return {
     transactionHash: transaction.hash,
-    transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
-    blockHash,
+    transactionIndex: isPendingBlock
+      ? null
+      : bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
+    blockHash: isPendingBlock ? null : blockHash,
     blockNumber,
     from: transaction.from,
     to: transaction.to,
