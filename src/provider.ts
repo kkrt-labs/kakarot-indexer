@@ -97,19 +97,15 @@ const abi = [
         type: "felt",
       },
       {
-        name: "native_token_address_",
+        name: "native_token_address",
         type: "felt",
       },
       {
-        name: "contract_account_class_hash_",
+        name: "account_contract_class_hash",
         type: "felt",
       },
       {
-        name: "externally_owned_account_class_hash",
-        type: "felt",
-      },
-      {
-        name: "account_proxy_class_hash",
+        name: "uninitialized_account_class_hash",
         type: "felt",
       },
       {
@@ -139,7 +135,7 @@ const abi = [
   {
     inputs: [
       {
-        name: "native_token_address_",
+        name: "native_token_address",
         type: "felt",
       },
     ],
@@ -162,7 +158,7 @@ const abi = [
   {
     inputs: [
       {
-        name: "base_fee_",
+        name: "base_fee",
         type: "felt",
       },
     ],
@@ -185,7 +181,7 @@ const abi = [
   {
     inputs: [
       {
-        name: "coinbase_",
+        name: "coinbase",
         type: "felt",
       },
     ],
@@ -208,7 +204,7 @@ const abi = [
   {
     inputs: [
       {
-        name: "prev_randao_",
+        name: "prev_randao",
         type: "Uint256",
       },
     ],

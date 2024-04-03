@@ -25,6 +25,11 @@ if (SINK_TYPE !== "console" && SINK_TYPE !== "mongo") {
   throw new Error("Invalid SINK_TYPE");
 }
 
+const KAKAROT_ADDRESS = Deno.env.get("KAKAROT_ADDRESS");
+if (KAKAROT_ADDRESS === undefined) {
+  throw new Error("ENV: KAKAROT_ADDRESS is not set");
+}
+
 const sinkOptions =
   SINK_TYPE === "mongo"
     ? {
@@ -47,6 +52,7 @@ export const config = {
     // Filters are unions
     events: [
       {
+        fromAddress: KAKAROT_ADDRESS,
         keys: [TRANSACTION_EXECUTED],
       },
     ],
