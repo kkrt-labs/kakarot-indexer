@@ -52,7 +52,6 @@ export const config = {
     // Filters are unions
     events: [
       {
-        fromAddress: KAKAROT_ADDRESS,
         keys: [TRANSACTION_EXECUTED],
       },
     ],
@@ -81,6 +80,32 @@ export default async function transform({
 
   await Promise.all(
     (events ?? []).map(async ({ transaction, receipt, event }) => {
+      // Filter out transactions that are not related to Kakarot.
+      // callArrayLen <- calldata[0]
+      // to <- calldata[1]
+      // selector <- calldata[2];
+      // dataOffset <- calldata[3]
+      // dataLength <- calldata[4]
+      // calldataLen <- calldata[5]
+      const calldata = transaction.invokeV1?.calldata;
+      if (calldata === undefined) {
+        console.error("No calldata in transaction");
+        console.error(JSON.stringify(transaction, null, 2));
+        return null;
+      }
+      const to = calldata[1];
+      if (to === undefined) {
+        console.error("No `to` field in calldata of transaction");
+        console.error(JSON.stringify(transaction, null, 2));
+        return null;
+      }
+      // TODO(Greged93): replace this with a more robust check.
+      // ⚠️ The existence of `to` field in invoke calldata in RPC is not enforced by protocol.
+      // Forks or modifications of the kkrt-labs/kakarot-rpc codebase could break this check.
+      if (to !== KAKAROT_ADDRESS) {
+        console.log("✅ Skipping transaction that is not related to Kakarot");
+        return null;
+      }
       const typedEthTx = toTypedEthTx({ transaction });
       // Can be null if:
       // 1. The transaction is missing calldata.
