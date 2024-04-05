@@ -113,6 +113,10 @@ const abi = [
         type: "felt",
       },
       {
+        name: "coinbase",
+        type: "felt",
+      },
+      {
         name: "block_gas_limit",
         type: "felt",
       },
@@ -265,6 +269,18 @@ const abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "get_account_contract_class_hash",
+    outputs: [
+      {
+        name: "account_contract_class_hash",
+        type: "felt",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         name: "evm_address",
@@ -295,6 +311,17 @@ const abi = [
         type: "felt",
       },
     ],
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        name: "evm_address",
+        type: "felt",
+      },
+    ],
+    name: "register_account",
+    outputs: [],
     type: "function",
   },
   {
@@ -356,6 +383,71 @@ const abi = [
       },
       {
         name: "gas_used",
+        type: "felt",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        name: "nonce",
+        type: "felt",
+      },
+      {
+        name: "origin",
+        type: "felt",
+      },
+      {
+        name: "to",
+        type: "Option",
+      },
+      {
+        name: "gas_limit",
+        type: "felt",
+      },
+      {
+        name: "gas_price",
+        type: "felt",
+      },
+      {
+        name: "value",
+        type: "Uint256",
+      },
+      {
+        name: "data_len",
+        type: "felt",
+      },
+      {
+        name: "data",
+        type: "felt*",
+      },
+      {
+        name: "access_list_len",
+        type: "felt",
+      },
+      {
+        name: "access_list",
+        type: "felt*",
+      },
+    ],
+    name: "eth_estimate_gas",
+    outputs: [
+      {
+        name: "return_data_len",
+        type: "felt",
+      },
+      {
+        name: "return_data",
+        type: "felt*",
+      },
+      {
+        name: "success",
+        type: "felt",
+      },
+      {
+        name: "required_gas",
         type: "felt",
       },
     ],
