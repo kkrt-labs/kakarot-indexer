@@ -1,5 +1,5 @@
 // Utils
-import { padString, toHexString } from "./utils/hex.ts";
+import { padString, toHexString, unpadString } from "./utils/hex.ts";
 
 // Types
 import { toEthTx, toTypedEthTx } from "./types/transaction.ts";
@@ -25,16 +25,14 @@ if (SINK_TYPE !== "console" && SINK_TYPE !== "mongo") {
   throw new Error("Invalid SINK_TYPE");
 }
 
-const sinkOptions =
-  SINK_TYPE === "mongo"
-    ? {
-        connectionString:
-          Deno.env.get("MONGO_CONNECTION_STRING") ??
-          "mongodb://mongo:mongo@mongo:27017",
-        database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
-        collectionNames: ["headers", "transactions", "receipts", "logs"],
-      }
-    : {};
+const sinkOptions = SINK_TYPE === "mongo"
+  ? {
+    connectionString: Deno.env.get("MONGO_CONNECTION_STRING") ??
+      "mongodb://mongo:mongo@mongo:27017",
+    database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
+    collectionNames: ["headers", "transactions", "receipts", "logs"],
+  }
+  : {};
 
 export const config = {
   streamUrl: STREAM_URL,
@@ -65,7 +63,7 @@ export default async function transform({
   // Accumulate the gas used in the block in order to calculate the cumulative gas used.
   // We increment it by the gas used in each transaction in the flatMap iteration.
   let cumulativeGasUsed = 0n;
-  const blockNumber = padString(toHexString(header.blockNumber), 8);
+  const blockNumber = unpadString(toHexString(header.blockNumber));
   const blockHash = padString(header.blockHash, 32);
   const blockLogsBloom = new Bloom();
   const transactionTrie = new Trie();

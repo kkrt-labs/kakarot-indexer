@@ -52,3 +52,12 @@ export function padBytes(
   result.set(bytes, length - bytes.length);
   return bytesToHex(result);
 }
+
+/**
+ * @param hex - A hex string.
+ */
+export function unpadString(
+  hex: PrefixedHexString | undefined,
+): PrefixedHexString {
+  return "0x" + stripHexPrefix(hex ?? "0x").replace(/^0+/, "");
+}

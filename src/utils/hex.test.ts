@@ -1,5 +1,11 @@
 import { assertEquals } from "https://deno.land/std@0.213.0/assert/mod.ts";
-import { padBigint, padBytes, padString, toHexString } from "./hex.ts";
+import {
+  padBigint,
+  padBytes,
+  padString,
+  toHexString,
+  unpadString,
+} from "./hex.ts";
 
 Deno.test("toHexString #1", () => {
   const x = "1234";
@@ -61,5 +67,19 @@ Deno.test("padBytes #3", () => {
   const x = undefined;
   const expected = "0x0000000000000000";
   const paddedX = padBytes(x, 8);
+  assertEquals(paddedX, expected);
+});
+
+Deno.test("unpad #1", () => {
+  const x = "0x0000000000001";
+  const expected = "0x1";
+  const paddedX = unpadString(x);
+  assertEquals(paddedX, expected);
+});
+
+Deno.test("unpad #2", () => {
+  const x = undefined;
+  const expected = "0x";
+  const paddedX = unpadString(x);
   assertEquals(paddedX, expected);
 });
