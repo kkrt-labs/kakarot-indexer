@@ -65,7 +65,7 @@ export default async function transform({
   // Accumulate the gas used in the block in order to calculate the cumulative gas used.
   // We increment it by the gas used in each transaction in the flatMap iteration.
   let cumulativeGasUsed = 0n;
-  const blockNumber = padString(toHexString(header.blockNumber), 32);
+  const blockNumber = padString(toHexString(header.blockNumber), 8);
   const blockHash = padString(header.blockHash, 32);
   const blockLogsBloom = new Bloom();
   const transactionTrie = new Trie();
