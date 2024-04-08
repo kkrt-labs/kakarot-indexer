@@ -54,21 +54,20 @@ export function toEthReceipt({
   // https://github.com/kkrt-labs/kakarot/blob/main/src/kakarot/accounts/eoa/library.cairo
   const status = bigIntToHex(BigInt(event.data[event.data.length - 2]));
   // If there is no destination, calculate the deployed contract address.
-  const contractAddress = transaction.to === null
-    ? padBytes(
-      generateAddress(
-        hexToBytes(transaction.from),
-        hexToBytes(transaction.nonce),
-      ),
-      20,
-    )
-    : null;
+  const contractAddress =
+    transaction.to === null
+      ? padBytes(
+          generateAddress(
+            hexToBytes(transaction.from),
+            hexToBytes(transaction.nonce),
+          ),
+          20,
+        )
+      : null;
 
   return {
     transactionHash: transaction.hash,
-    transactionIndex: isPendingBlock
-      ? null
-      : bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
+    transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
     blockHash: isPendingBlock ? null : blockHash,
     blockNumber,
     from: transaction.from,
