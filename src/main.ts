@@ -25,14 +25,16 @@ if (SINK_TYPE !== "console" && SINK_TYPE !== "mongo") {
   throw new Error("Invalid SINK_TYPE");
 }
 
-const sinkOptions = SINK_TYPE === "mongo"
-  ? {
-    connectionString: Deno.env.get("MONGO_CONNECTION_STRING") ??
-      "mongodb://mongo:mongo@mongo:27017",
-    database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
-    collectionNames: ["headers", "transactions", "receipts", "logs"],
-  }
-  : {};
+const sinkOptions =
+  SINK_TYPE === "mongo"
+    ? {
+        connectionString:
+          Deno.env.get("MONGO_CONNECTION_STRING") ??
+          "mongodb://mongo:mongo@mongo:27017",
+        database: Deno.env.get("MONGO_DATABASE_NAME") ?? "kakarot-test-db",
+        collectionNames: ["headers", "transactions", "receipts", "logs"],
+      }
+    : {};
 
 export const config = {
   streamUrl: STREAM_URL,
