@@ -81,9 +81,7 @@ export function toEthLog({
   return {
     removed: false,
     logIndex: null,
-    transactionIndex: isPendingBlock
-      ? null
-      : bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
+    transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
     transactionHash: transaction.hash,
     blockHash: isPendingBlock ? null : blockHash,
     blockNumber,
