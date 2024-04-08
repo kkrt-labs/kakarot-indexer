@@ -88,7 +88,7 @@ const isKakarotTransaction = (transaction: Transaction) => {
   // TODO(Greged93): replace this with a more robust check.
   // ⚠️ The existence of `to` field in invoke calldata in RPC is not enforced by protocol.
   // Forks or modifications of the kkrt-labs/kakarot-rpc codebase could break this check.
-  if (to !== KAKAROT_ADDRESS) {
+  if (BigInt(to) !== BigInt(KAKAROT_ADDRESS)) {
     console.log("✅ Skipping transaction that is not related to Kakarot");
     return false;
   }
