@@ -9,7 +9,7 @@ import {
   bigIntToHex,
   Bloom,
   bytesToHex,
-  JsonRpcBlock,
+  JsonRpcBlock as Block,
   PrefixedHexString,
 } from "../deps.ts";
 import { KAKAROT } from "../provider.ts";
@@ -22,6 +22,7 @@ import { KAKAROT } from "../provider.ts";
  * @param logsBloom - The logs bloom of the block.
  * @param receiptRoot - The transaction receipt trie root of the block.
  * @param transactionRoot - The transaction trie root of the block.
+ * @param isPendingBlock - Whether the block is pending.
  * @returns The Ethereum block header in the json RPC format.
  *
  * Note: We return a JsonRpcBlock instead of a JsonHeader, since the
@@ -37,6 +38,7 @@ export async function toEthHeader({
   logsBloom,
   receiptRoot,
   transactionRoot,
+  isPendingBlock,
 }: {
   header: BlockHeader;
   blockNumber: PrefixedHexString;
@@ -45,6 +47,7 @@ export async function toEthHeader({
   logsBloom: Bloom;
   receiptRoot: Uint8Array;
   transactionRoot: Uint8Array;
+  isPendingBlock: boolean;
 }): Promise<JsonRpcBlock> {
   const maybeTs = Date.parse(header.timestamp);
   const ts = isNaN(maybeTs) ? 0 : Math.floor(maybeTs / 1000);
@@ -110,7 +113,7 @@ export async function toEthHeader({
 
   return {
     number: blockNumber,
-    hash: blockHash,
+    hash: isPendingBlock ? null : blockHash,
     parentHash: padString(header.parentBlockHash, 32),
     mixHash: padString("0x", 32),
     nonce: padString("0x", 8),
@@ -139,3 +142,7 @@ export async function toEthHeader({
     baseFeePerGas: padString(bigIntToHex(baseFee), 32),
   };
 }
+
+export type JsonRpcBlock = Omit<Block, "hash"> & {
+  hash: string | null;
+};

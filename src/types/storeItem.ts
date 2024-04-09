@@ -3,7 +3,8 @@ import { JsonRpcLog } from "./log.ts";
 import { JsonRpcReceipt } from "./receipt.ts";
 
 // Eth
-import { JsonRpcBlock, JsonRpcTx } from "../deps.ts";
+import { JsonRpcTx } from "../deps.ts";
+import { JsonRpcBlock } from "./header.ts";
 
 type Collection =
   | "transactions"

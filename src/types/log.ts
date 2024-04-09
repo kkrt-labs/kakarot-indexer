@@ -28,6 +28,7 @@ const IGNORED_KEYS = [
  * @param event - A Starknet event.
  * @param blockNumber - The block number of the transaction in hex.
  * @param blockHash - The block hash of the transaction in hex.
+ * @param isPendingBlock - Whether the block is pending.
  * @returns - The log in the Ethereum format, or null if the log is invalid.
  */
 export function toEthLog({
@@ -35,11 +36,13 @@ export function toEthLog({
   event,
   blockNumber,
   blockHash,
+  isPendingBlock,
 }: {
   transaction: JsonRpcTx;
   event: Event;
   blockNumber: PrefixedHexString;
   blockHash: PrefixedHexString;
+  isPendingBlock: boolean;
 }): JsonRpcLog | null {
   const keys = event.keys ?? [];
 
@@ -80,7 +83,7 @@ export function toEthLog({
     logIndex: null,
     transactionIndex: bigIntToHex(BigInt(transaction.transactionIndex ?? 0)),
     transactionHash: transaction.hash,
-    blockHash,
+    blockHash: isPendingBlock ? null : blockHash,
     blockNumber,
     address,
     data: `0x${paddedData}`,
